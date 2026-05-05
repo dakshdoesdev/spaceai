@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" role="img" aria-label="Synthetic satellite tile with medium-risk kiln">
+  <rect width="900" height="620" fill="#667854"/>
+  <path d="M0 145 C205 80 305 175 485 132 C640 94 760 155 900 118 L900 0 L0 0 Z" fill="#899868" opacity="0.78"/>
+  <path d="M40 365 L825 255" stroke="#4d5b40" stroke-width="16" opacity="0.34"/>
+  <path d="M95 130 L770 505" stroke="#374637" stroke-width="10" opacity="0.25"/>
+  <g fill="#879068" opacity="0.52">
+    <rect x="90" y="430" width="170" height="60" transform="rotate(-6 175 460)"/>
+    <rect x="660" y="110" width="120" height="50" transform="rotate(10 720 135)"/>
+    <rect x="575" y="420" width="150" height="58" transform="rotate(-12 650 449)"/>
+  </g>
+  <g transform="translate(410 300) rotate(-7)">
+    <ellipse cx="0" cy="0" rx="122" ry="50" fill="#955736" opacity="0.9"/>
+    <ellipse cx="-5" cy="0" rx="94" ry="33" fill="#b86f3e" opacity="0.9"/>
+    <rect x="-106" y="-35" width="212" height="13" fill="#d28a4b" opacity="0.8"/>
+    <circle cx="75" cy="-25" r="16" fill="#42342f"/>
+    <path d="M88 -43 C118 -66 145 -82 174 -100" stroke="#2f3530" stroke-width="12" stroke-linecap="round" opacity="0.24"/>
+  </g>
+  <rect x="286" y="230" width="255" height="160" rx="8" transform="rotate(-7 414 310)" fill="none" stroke="#f59e0b" stroke-width="5" stroke-dasharray="10 8"/>
+  <g font-family="Arial, sans-serif" font-size="22" fill="#111827">
+    <rect x="32" y="32" width="335" height="72" rx="8" fill="#f8fafc" opacity="0.88"/>
+    <text x="52" y="62" font-weight="700">KilnWatch review tile</text>
+    <text x="52" y="88" font-size="16">Crop/review decision demo path</text>
+  </g>
+</svg>
+

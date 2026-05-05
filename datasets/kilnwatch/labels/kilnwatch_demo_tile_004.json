@@ -1,0 +1,33 @@
+{
+  "schema_version": "kilnwatch.prediction.v0",
+  "tile_id": "kilnwatch_demo_tile_004",
+  "image_path": "datasets/kilnwatch/images/dev/kilnwatch_demo_tile_004.svg",
+  "timestamp_utc": "2026-05-05T00:15:00Z",
+  "sensor": {
+    "platform": "demo-satellite",
+    "resolution_m": 3.0,
+    "bands": ["red", "green", "blue", "nir"]
+  },
+  "location": {
+    "lat": 25.02143,
+    "lon": 85.44209,
+    "admin_hint": "demo region"
+  },
+  "kiln_detected": true,
+  "compliance_risk_score": 0.62,
+  "detections": [
+    {
+      "class": "brick_kiln",
+      "confidence": 0.79,
+      "bbox_xyxy": [286, 230, 541, 390],
+      "area_px": 40800
+    }
+  ],
+  "risk_factors": [
+    "kiln-like oval structure",
+    "possible short plume",
+    "medium bare-earth yard footprint"
+  ],
+  "recommended_action": "Send cropped review packet instead of the full raw tile.",
+  "model_notes": "Demo prediction JSON; replace with Agent 2 schema output when available."
+}

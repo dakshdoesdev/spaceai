@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" role="img" aria-label="Synthetic satellite tile with suspected brick kiln">
+  <rect width="900" height="620" fill="#63724d"/>
+  <g opacity="0.75">
+    <path d="M0 80 C160 40 230 115 390 72 C555 28 650 82 900 42 L900 0 L0 0 Z" fill="#7f8b61"/>
+    <path d="M0 590 C165 540 260 595 410 560 C600 515 720 585 900 535 L900 620 L0 620 Z" fill="#5a6c45"/>
+    <path d="M50 250 L310 200 L850 330 L820 390 L260 275 L40 322 Z" fill="#7b714f" opacity="0.55"/>
+    <path d="M90 140 L840 470" stroke="#31422f" stroke-width="12" opacity="0.35"/>
+    <path d="M35 420 L820 150" stroke="#42513a" stroke-width="8" opacity="0.3"/>
+  </g>
+  <g opacity="0.45" fill="#88916a">
+    <rect x="60" y="72" width="110" height="58" transform="rotate(-8 115 101)"/>
+    <rect x="700" y="72" width="86" height="44" transform="rotate(14 743 94)"/>
+    <rect x="560" y="455" width="122" height="55" transform="rotate(-13 621 482)"/>
+    <rect x="175" y="485" width="94" height="38" transform="rotate(8 222 504)"/>
+  </g>
+  <g transform="translate(428 292) rotate(-14)">
+    <ellipse cx="0" cy="0" rx="138" ry="58" fill="#9a5b36" opacity="0.92"/>
+    <ellipse cx="-8" cy="-2" rx="112" ry="39" fill="#b06a3d" opacity="0.95"/>
+    <rect x="-126" y="-12" width="252" height="24" fill="#7f432d" opacity="0.62"/>
+    <rect x="-115" y="-39" width="230" height="15" fill="#cf8a4d" opacity="0.85"/>
+    <circle cx="82" cy="-28" r="19" fill="#3f3029"/>
+    <path d="M95 -49 C134 -82 154 -97 193 -125" stroke="#2f3530" stroke-width="18" stroke-linecap="round" opacity="0.33"/>
+  </g>
+  <g fill="none" stroke="#facc15" stroke-width="5" stroke-dasharray="12 8">
+    <rect x="285" y="198" width="295" height="190" rx="8" transform="rotate(-14 432 293)"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="22" fill="#111827">
+    <rect x="32" y="32" width="300" height="72" rx="8" fill="#f8fafc" opacity="0.88"/>
+    <text x="52" y="62" font-weight="700">KilnWatch sample tile</text>
+    <text x="52" y="88" font-size="16">Synthetic local demo asset</text>
+  </g>
+</svg>
+

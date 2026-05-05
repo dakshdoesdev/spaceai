@@ -1,0 +1,35 @@
+{
+  "schema_version": "kilnwatch.prediction.v0",
+  "tile_id": "kilnwatch_demo_tile_001",
+  "image_path": "datasets/kilnwatch/images/dev/kilnwatch_demo_tile_001.svg",
+  "timestamp_utc": "2026-05-05T00:00:00Z",
+  "sensor": {
+    "platform": "demo-satellite",
+    "resolution_m": 3.0,
+    "bands": ["red", "green", "blue", "nir"]
+  },
+  "location": {
+    "lat": 24.89492,
+    "lon": 85.53072,
+    "admin_hint": "demo region"
+  },
+  "kiln_detected": true,
+  "compliance_risk_score": 0.86,
+  "detections": [
+    {
+      "class": "brick_kiln",
+      "confidence": 0.91,
+      "bbox_xyxy": [285, 198, 580, 388],
+      "area_px": 56050
+    }
+  ],
+  "risk_factors": [
+    "elongated kiln-like oval structure",
+    "dark plume signature downwind",
+    "bare-earth brick production yard",
+    "near agricultural settlement edge"
+  ],
+  "recommended_action": "Send compact alert immediately and preserve full tile for compliance review.",
+  "model_notes": "Demo prediction JSON; replace with Agent 2 schema output when available."
+}
+

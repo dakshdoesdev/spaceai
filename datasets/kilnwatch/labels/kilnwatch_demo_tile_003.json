@@ -1,0 +1,26 @@
+{
+  "schema_version": "kilnwatch.prediction.v0",
+  "tile_id": "kilnwatch_demo_tile_003",
+  "image_path": "datasets/kilnwatch/images/dev/kilnwatch_demo_tile_003.svg",
+  "timestamp_utc": "2026-05-05T00:10:00Z",
+  "sensor": {
+    "platform": "demo-satellite",
+    "resolution_m": 3.0,
+    "bands": ["red", "green", "blue", "nir"]
+  },
+  "location": {
+    "lat": 24.73582,
+    "lon": 85.81291,
+    "admin_hint": "demo region"
+  },
+  "kiln_detected": false,
+  "compliance_risk_score": 0.06,
+  "detections": [],
+  "risk_factors": [
+    "agricultural fields",
+    "no kiln geometry",
+    "no plume signature"
+  ],
+  "recommended_action": "Ignore for downlink prioritization.",
+  "model_notes": "Demo prediction JSON; replace with Agent 2 schema output when available."
+}

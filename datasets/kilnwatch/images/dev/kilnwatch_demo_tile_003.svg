@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" role="img" aria-label="Synthetic satellite tile without kiln">
+  <rect width="900" height="620" fill="#5f7a52"/>
+  <path d="M0 96 C180 70 260 142 430 102 C610 60 735 135 900 82 L900 0 L0 0 Z" fill="#8a9868" opacity="0.82"/>
+  <path d="M0 520 C170 478 290 545 455 502 C610 462 748 526 900 484 L900 620 L0 620 Z" fill="#516b49" opacity="0.76"/>
+  <path d="M70 205 L820 430" stroke="#405239" stroke-width="12" opacity="0.28"/>
+  <path d="M60 430 L835 160" stroke="#78855d" stroke-width="10" opacity="0.32"/>
+  <g fill="#829064" opacity="0.55">
+    <rect x="115" y="120" width="120" height="54" transform="rotate(-7 175 147)"/>
+    <rect x="300" y="305" width="170" height="60" transform="rotate(12 385 335)"/>
+    <rect x="635" y="115" width="125" height="52" transform="rotate(-11 698 141)"/>
+    <rect x="630" y="450" width="155" height="58" transform="rotate(7 708 479)"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="22" fill="#111827">
+    <rect x="32" y="32" width="315" height="72" rx="8" fill="#f8fafc" opacity="0.88"/>
+    <text x="52" y="62" font-weight="700">KilnWatch clear tile</text>
+    <text x="52" y="88" font-size="16">Ignore decision demo path</text>
+  </g>
+</svg>
+
