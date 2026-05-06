@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import json
 import math
+from html import escape
 from pathlib import Path
 from typing import Any
-
-import pandas as pd
 import streamlit as st
 
 from kilnwatch.ground_station import (
@@ -77,13 +76,13 @@ def _inject_mission_control_css() -> None:
         .stApp {
             background: var(--kw-bg);
             color: var(--kw-text);
-            font-family: Inter, system-ui, sans-serif;
+            font-family: ui-sans-serif, system-ui, sans-serif;
         }
 
         .block-container {
             max-width: none;
-            padding: 0;
-            margin-left: 256px;
+            padding: 80px 24px 24px 280px;
+            margin-left: 0;
         }
 
         [data-testid="stToolbar"],
@@ -108,7 +107,6 @@ def _inject_mission_control_css() -> None:
         .kw-side-title {
             font-size: 18px;
             font-weight: 700;
-            letter-spacing: 0.01em;
         }
 
         .kw-side-status {
@@ -116,6 +114,14 @@ def _inject_mission_control_css() -> None:
             font-family: monospace;
             font-size: 13px;
             color: var(--kw-muted);
+            position: relative;
+            cursor: default;
+        }
+
+        .kw-side-status:hover .kw-flyout,
+        .kw-nav-item:hover .kw-flyout,
+        .kw-tab:hover .kw-flyout {
+            display: block;
         }
 
         .kw-nav {
@@ -125,6 +131,7 @@ def _inject_mission_control_css() -> None:
         }
 
         .kw-nav-item {
+            position: relative;
             height: 40px;
             display: flex;
             align-items: center;
@@ -134,13 +141,22 @@ def _inject_mission_control_css() -> None:
             color: var(--kw-muted);
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
         }
 
         .kw-nav-item.active {
             background: #414750;
             color: var(--kw-text);
             border-left-color: var(--kw-good);
+        }
+
+        .kw-nav-item.active::after {
+            content: "";
+            position: absolute;
+            left: 48px;
+            right: 12px;
+            bottom: 5px;
+            height: 2px;
+            background: var(--kw-good);
         }
 
         .kw-nav-symbol {
@@ -160,15 +176,15 @@ def _inject_mission_control_css() -> None:
             color: var(--kw-text);
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
         }
 
         .kw-top {
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 256px;
+            right: 0;
             z-index: 10;
             height: 56px;
-            margin-left: 256px;
             background: #0e0e0e;
             border-bottom: 1px solid var(--kw-border);
             display: flex;
@@ -189,19 +205,62 @@ def _inject_mission_control_css() -> None:
             gap: 28px;
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
             color: var(--kw-muted);
         }
 
-        .kw-tabs span.active {
+        .kw-tab {
+            position: relative;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+
+        .kw-tab.active {
             color: var(--kw-text);
             border-bottom: 2px solid var(--kw-text);
-            padding-bottom: 8px;
+        }
+
+        .kw-flyout {
+            display: none;
+            position: absolute;
+            left: calc(100% + 14px);
+            top: 0;
+            width: 260px;
+            background: #0e0e0e;
+            border: 1px solid var(--kw-outline);
+            color: var(--kw-text);
+            z-index: 40;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .kw-flyout-title {
+            color: var(--kw-good);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .kw-flyout-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            border-top: 1px solid var(--kw-border);
+            padding-top: 6px;
+            margin-top: 6px;
+            color: var(--kw-muted);
+        }
+
+        .kw-tab .kw-flyout {
+            left: auto;
+            right: 0;
+            top: 52px;
         }
 
         .kw-main {
             display: block;
-            padding: 24px;
+            padding: 0;
         }
 
         .kw-title {
@@ -231,8 +290,6 @@ def _inject_mission_control_css() -> None:
             color: var(--kw-text);
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
         }
 
         .kw-strip,
@@ -254,7 +311,6 @@ def _inject_mission_control_css() -> None:
             padding: 7px 9px;
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
             white-space: nowrap;
         }
 
@@ -288,8 +344,6 @@ def _inject_mission_control_css() -> None:
             color: var(--kw-muted);
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
         }
 
         .kw-metric-value {
@@ -312,8 +366,6 @@ def _inject_mission_control_css() -> None:
             justify-content: space-between;
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
         }
 
         .kw-panel-body {
@@ -366,6 +418,38 @@ def _inject_mission_control_css() -> None:
             border: 1px solid var(--kw-border);
         }
 
+        .kw-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .kw-table th {
+            color: var(--kw-muted);
+            background: var(--kw-panel-2);
+            border-bottom: 1px solid var(--kw-border);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 9px 10px;
+            text-align: left;
+        }
+
+        .kw-table td {
+            border-bottom: 1px solid var(--kw-border);
+            padding: 9px 10px;
+            color: var(--kw-text);
+            white-space: nowrap;
+        }
+
+        .kw-table td.muted {
+            color: var(--kw-muted);
+        }
+
+        .kw-table td.good {
+            color: var(--kw-good);
+        }
+
         div[data-testid="stButton"] button {
             border-radius: 0;
             border: 1px solid var(--kw-outline);
@@ -373,7 +457,6 @@ def _inject_mission_control_css() -> None:
             color: var(--kw-text);
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
         }
 
         div[data-testid="stButton"] button:hover {
@@ -383,8 +466,8 @@ def _inject_mission_control_css() -> None:
 
         @media (max-width: 920px) {
             .kw-side { display: none; }
-            .kw-top { margin-left: 0; }
-            .block-container { margin-left: 0; }
+            .kw-top { left: 0; }
+            .block-container { padding: 76px 16px 16px; }
             .kw-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .kw-lower { grid-template-columns: 1fr; }
             .kw-build { font-size: 18px; }
@@ -402,14 +485,56 @@ def _render_ops_rail() -> None:
         <aside class="kw-side">
           <div>
             <div class="kw-side-title">SAT-01 / BUS / OPS</div>
-            <div class="kw-side-status">STATUS: NOMINAL</div>
+            <div class="kw-side-status">STATUS: NOMINAL
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Satellite Bus</div>
+                <div>Current orbit pass is loaded from downlinked telemetry.</div>
+                <div class="kw-flyout-row"><span>Boundary</span><span>queue-only</span></div>
+                <div class="kw-flyout-row"><span>Detector</span><span>YOLO strict</span></div>
+              </div>
+            </div>
           </div>
           <nav class="kw-nav">
-            <div class="kw-nav-item"><span class="kw-nav-symbol">))</span><span>SENSOR</span></div>
-            <div class="kw-nav-item"><span class="kw-nav-symbol">#</span><span>NETWORK</span></div>
-            <div class="kw-nav-item"><span class="kw-nav-symbol">{}</span><span>PAYLOAD</span></div>
-            <div class="kw-nav-item active"><span class="kw-nav-symbol">!</span><span>TRIAGE</span></div>
-            <div class="kw-nav-item"><span class="kw-nav-symbol">||</span><span>SYSTEM</span></div>
+            <div class="kw-nav-item"><span class="kw-nav-symbol">01</span><span>SENSOR</span>
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Sensor</div>
+                <div>Raw tile intake is satellite-side only.</div>
+                <div class="kw-flyout-row"><span>Ground access</span><span>blocked</span></div>
+                <div class="kw-flyout-row"><span>Visible here</span><span>telemetry</span></div>
+              </div>
+            </div>
+            <div class="kw-nav-item"><span class="kw-nav-symbol">02</span><span>NETWORK</span>
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Network</div>
+                <div>Downlink path carries JSON payloads and crop files only.</div>
+                <div class="kw-flyout-row"><span>Queue</span><span>transmission_queue/</span></div>
+                <div class="kw-flyout-row"><span>Raw bytes</span><span>not sent</span></div>
+              </div>
+            </div>
+            <div class="kw-nav-item"><span class="kw-nav-symbol">03</span><span>PAYLOAD</span>
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Payload</div>
+                <div>Each alert links detector metadata, triage action, and crop evidence.</div>
+                <div class="kw-flyout-row"><span>Format</span><span>JSON + PNG</span></div>
+                <div class="kw-flyout-row"><span>Preview</span><span>real crop only</span></div>
+              </div>
+            </div>
+            <div class="kw-nav-item active"><span class="kw-nav-symbol">04</span><span>TRIAGE</span>
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Triage</div>
+                <div>Active judge view: proof status, mission metrics, alerts, crop review.</div>
+                <div class="kw-flyout-row"><span>Detector</span><span>honest mode</span></div>
+                <div class="kw-flyout-row"><span>LFM</span><span>optional</span></div>
+              </div>
+            </div>
+            <div class="kw-nav-item"><span class="kw-nav-symbol">05</span><span>SYSTEM</span>
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">System</div>
+                <div>Technical honesty state comes from payload and telemetry metadata.</div>
+                <div class="kw-flyout-row"><span>Fallbacks</span><span>visible</span></div>
+                <div class="kw-flyout-row"><span>Samples</span><span>flagged</span></div>
+              </div>
+            </div>
           </nav>
           <div class="kw-side-footer">REPLAY_MODE</div>
         </aside>
@@ -424,10 +549,34 @@ def _render_top_bar() -> None:
         <header class="kw-top">
           <div class="kw-build">ORBITAL_TRIAGE_v4.1</div>
           <div class="kw-tabs">
-            <span>LIVE</span>
-            <span>ARCHIVE</span>
-            <span class="active">TELEMETRY</span>
-            <span>DIAGNOSTICS</span>
+            <div class="kw-tab">LIVE
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Live</div>
+                <div>Shows the current replay frame from queue telemetry.</div>
+                <div class="kw-flyout-row"><span>State</span><span>local demo</span></div>
+              </div>
+            </div>
+            <div class="kw-tab">ARCHIVE
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Archive</div>
+                <div>Past alert payloads remain visible from transmission_queue.</div>
+                <div class="kw-flyout-row"><span>Source</span><span>JSON files</span></div>
+              </div>
+            </div>
+            <div class="kw-tab active">TELEMETRY
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Telemetry</div>
+                <div>Active view for byte accounting and detector honesty fields.</div>
+                <div class="kw-flyout-row"><span>Replay</span><span>enabled</span></div>
+              </div>
+            </div>
+            <div class="kw-tab">DIAGNOSTICS
+              <div class="kw-flyout">
+                <div class="kw-flyout-title">Diagnostics</div>
+                <div>Boundary proof and missing crop states are exposed in-panel.</div>
+                <div class="kw-flyout-row"><span>Raw tiles</span><span>not read</span></div>
+              </div>
+            </div>
           </div>
         </header>
         """,
@@ -471,8 +620,6 @@ def _render_proof_status(status: Any, sample_data: bool, evidence: list[Any]) ->
         """,
         unsafe_allow_html=True,
     )
-    with st.expander("Proof metadata", expanded=False):
-        st.json(status.truth_fields)
 
 
 def _render_mission_metrics(metrics: Any, counts: Any) -> None:
@@ -524,8 +671,18 @@ def _render_replay_controls(events: list[dict[str, Any]]) -> list[dict[str, Any]
     if controls[1].button("Reset", use_container_width=True):
         st.session_state.replay_index = 0
     replay_index = min(st.session_state.replay_index, len(events))
-    controls[2].progress((replay_index / len(events)) if events else 0.0)
-    controls[2].caption(f"Replay position: {replay_index} / {len(events)} telemetry events")
+    progress = (replay_index / len(events)) if events else 0.0
+    controls[2].markdown(
+        f"""
+        <div style="border:1px solid var(--kw-border);height:36px;padding:7px 9px;font-family:monospace;font-size:12px;color:var(--kw-muted);">
+          <div style="height:4px;background:#0e0e0e;border:1px solid var(--kw-border);margin-bottom:5px;">
+            <div style="height:100%;width:{progress * 100:.1f}%;background:var(--kw-good);"></div>
+          </div>
+          Replay position: {replay_index} / {len(events)} telemetry events
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     return events[:replay_index]
 
 
@@ -553,7 +710,32 @@ def _render_downlink_queue(
     if not rows:
         st.info("No alerts received at this replay position.")
         return
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True, height=360)
+    st.markdown(_queue_table_html(rows), unsafe_allow_html=True)
+
+
+def _queue_table_html(rows: list[dict[str, Any]]) -> str:
+    columns = ["ID", "MODE", "TYPE", "CONF", "TRIAGE", "CROP", "RAW / DL"]
+    header = "".join(f"<th>{escape(column)}</th>" for column in columns)
+    body_rows = []
+    for row in rows:
+        cells = []
+        for column in columns:
+            value = str(row.get(column, ""))
+            css_class = ""
+            if column in {"MODE", "RAW / DL"}:
+                css_class = ' class="muted"'
+            if column in {"TYPE", "CROP"} and value in {"REAL", "PRESENT"}:
+                css_class = ' class="good"'
+            cells.append(f"<td{css_class}>{escape(value)}</td>")
+        body_rows.append(f"<tr>{''.join(cells)}</tr>")
+    return (
+        '<section class="kw-panel">'
+        '<div class="kw-panel-head"><span>Downlink Queue</span></div>'
+        '<div class="kw-panel-body" style="padding:0;overflow:auto;max-height:360px;">'
+        f'<table class="kw-table"><thead><tr>{header}</tr></thead>'
+        f"<tbody>{''.join(body_rows)}</tbody></table>"
+        "</div></section>"
+    )
 
 
 def _render_evidence_payload(
@@ -606,8 +788,47 @@ def _render_downlink_chart(events: list[dict[str, Any]]) -> None:
     if not series:
         st.info("No telemetry at this replay position.")
         return
-    chart_df = pd.DataFrame(series).set_index("event")
-    st.line_chart(chart_df[["Raw bytes processed in orbit", "Bytes downlinked"]], height=220)
+    st.markdown(_downlink_proof_html(series), unsafe_allow_html=True)
+
+
+def _downlink_proof_html(series: list[dict[str, Any]]) -> str:
+    latest = series[-1]
+    raw_total = _safe_int(latest.get("Raw bytes processed in orbit"))
+    downlinked_total = _safe_int(latest.get("Bytes downlinked"))
+    rows = []
+    for point in series[-8:]:
+        event = str(point.get("event", ""))
+        raw_bytes = _safe_int(point.get("Raw bytes processed in orbit"))
+        downlinked_bytes = _safe_int(point.get("Bytes downlinked"))
+        saved = max(raw_bytes - downlinked_bytes, 0)
+        rows.append(
+            "<tr>"
+            f"<td>{escape(event)}</td>"
+            f'<td class="muted">{escape(format_bytes(raw_bytes))}</td>'
+            f'<td class="muted">{escape(format_bytes(downlinked_bytes))}</td>'
+            f"<td>{escape(format_bytes(saved))}</td>"
+            "<td>"
+            '<div style="height:6px;background:#0e0e0e;border:1px solid var(--kw-border);">'
+            f'<div style="height:100%;width:{_percent(raw_bytes, raw_total):.2f}%;background:var(--kw-muted);"></div>'
+            "</div>"
+            '<div style="height:6px;background:#0e0e0e;border:1px solid var(--kw-border);margin-top:4px;">'
+            f'<div style="height:100%;width:{_percent(downlinked_bytes, raw_total):.2f}%;background:var(--kw-good);"></div>'
+            "</div>"
+            "</td>"
+            "</tr>"
+        )
+    return (
+        '<section class="kw-panel">'
+        '<div class="kw-panel-head"><span>Raw vs Downlinked Bytes</span></div>'
+        '<div class="kw-panel-body" style="padding:0;overflow:auto;">'
+        '<table class="kw-table"><thead><tr>'
+        "<th>Event</th><th>Raw</th><th>Downlinked</th><th>Saved</th><th>Proof</th>"
+        f"</tr></thead><tbody>{''.join(rows)}</tbody></table>"
+        "</div></section>"
+        f'<div class="kw-evidence-note" style="text-align:left;margin-top:8px;">'
+        f"Latest cumulative: raw {escape(format_bytes(raw_total))} / "
+        f"downlinked {escape(format_bytes(downlinked_total))}</div>"
+    )
 
 
 def _build_queue_rows(
@@ -695,6 +916,19 @@ def _raw_bytes(event: dict[str, Any]) -> int:
         return int(event.get("raw_bytes_processed", event.get("original_payload_bytes", 0)))
     except (TypeError, ValueError):
         return 0
+
+
+def _safe_int(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _percent(value: int, total: int) -> float:
+    if total <= 0:
+        return 0.0
+    return max(0.0, min((value / total) * 100, 100.0))
 
 
 if __name__ == "__main__":
