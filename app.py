@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -152,13 +153,15 @@ def main() -> None:
         st.stop()
 
     status = proof_status_summary(payloads, telemetry_events, sample_data)
-    replay_events = mission_replay_controls(telemetry_events)
+    _ensure_replay_index(telemetry_events)
+    replay_events = _current_replay_events(telemetry_events)
     metrics = calculate_metrics(replay_events)
     counts = mission_proof_counts(payloads, replay_events)
 
     render_header(status, metrics, counts, sample_data)
     st.markdown("<hr>", unsafe_allow_html=True)
     render_mission_metrics(metrics, counts)
+    replay_events = mission_replay_controls(telemetry_events)
     st.markdown("<hr>", unsafe_allow_html=True)
     render_crop_review(payloads, replay_events)
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -224,10 +227,19 @@ def render_header(status, metrics, counts, sample_data: bool) -> None:
 
 
 # ── Replay controls ───────────────────────────────────────────────────────────
-def mission_replay_controls(events: list[dict]) -> list[dict]:
+def _ensure_replay_index(events: list[dict]) -> None:
     if "replay_index" not in st.session_state:
         st.session_state.replay_index = len(events)
 
+
+def _current_replay_events(events: list[dict]) -> list[dict]:
+    replay_index = min(st.session_state.replay_index, len(events))
+    return events[:replay_index]
+
+
+def mission_replay_controls(events: list[dict]) -> list[dict]:
+    _ensure_replay_index(events)
+    st.markdown("### Mission Replay")
     controls = st.columns([0.14, 0.14, 0.72])
     if controls[0].button("Replay", use_container_width=True):
         if st.session_state.replay_index >= len(events):
@@ -270,7 +282,8 @@ def render_mission_metrics(metrics, counts) -> None:
 def render_crop_review(payloads: list[dict], events: list[dict]) -> None:
     st.markdown("### Crop Review")
     st.caption(
-        "Only crop files physically present in `transmission_queue/crops/` are shown."
+        "Only crop files physically present in `transmission_queue/crops/` are shown. "
+        "Low-resolution crops are displayed at native size so the UI does not pretend they contain more detail."
     )
     evidence_rows = resolve_crop_evidence(payloads, events)
     if not evidence_rows:
@@ -302,19 +315,23 @@ def _render_crop_card(evidence, payload_by_tile: dict, event_by_tile: dict) -> N
     fname     = evidence.path.name if evidence.path else "—"
 
     if evidence.available and evidence.path is not None:
+        image_width, image_height = _image_size(evidence.path)
+        display_width = _crop_display_width(image_width)
         st.markdown('<div class="crop-card">', unsafe_allow_html=True)
         st.image(
             str(evidence.path),
-            width=220,
+            width=display_width,
             caption=None,
         )
         conf_str = f"{float(conf):.0%}" if conf is not None else "—"
+        size_note = f"{image_width}x{image_height}px" if image_width and image_height else "size unknown"
         st.markdown(
             f'<div class="crop-tile">{tile_id[:32]}…</div>'
             f'<div class="crop-meta">'
             f"🎯 Conf: <b>{conf_str}</b> · Risk: <b>{risk}</b><br>"
             f"🔬 Detector: <b>{det_mode}</b><br>"
             f"📋 Action: <b>{decision}</b><br>"
+            f"🧩 Crop: <b>{size_note}</b><br>"
             f"📁 <code>{fname}</code>"
             f"</div>",
             unsafe_allow_html=True,
@@ -506,6 +523,22 @@ def _ratio_label(value: float) -> str:
     if math.isinf(value):
         return "∞"
     return f"{value:.1f}×"
+
+
+def _image_size(path: Path) -> tuple[int | None, int | None]:
+    try:
+        from PIL import Image
+
+        with Image.open(path) as image:
+            return image.size
+    except (OSError, ImportError):
+        return None, None
+
+
+def _crop_display_width(width: int | None) -> int:
+    if width is None:
+        return 160
+    return max(96, min(width, 180))
 
 
 if __name__ == "__main__":
