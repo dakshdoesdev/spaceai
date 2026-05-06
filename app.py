@@ -132,7 +132,6 @@ def render_crop_review(payloads: list[dict], events: list[dict]) -> None:
             st.image(
                 str(evidence.path),
                 caption=f"tile_id={evidence.tile_id} | queue path={evidence.path}",
-                width="stretch",
             )
         else:
             st.warning(f"{evidence.tile_id}: no real crop available")
