@@ -74,6 +74,7 @@ def build_transmission_payload(
         "event": "alert",
         "tile_id": detection.tile_id,
         "source_tile_name": tile_path.name,
+        "action": action_for_detection(detection),
         "coordinates": detection.coordinates,
         "confidence": detection.confidence,
         "compliance_risk": detection.compliance_risk,
@@ -82,6 +83,23 @@ def build_transmission_payload(
         "crop_error": crop_error,
         "signals": detection.signals,
         **truth,
+    }
+
+
+def attach_byte_accounting(
+    payload: dict[str, Any],
+    *,
+    original_payload_bytes: int,
+    json_payload_bytes: int,
+    crop_payload_bytes: int,
+    transmitted_payload_bytes: int,
+) -> None:
+    payload["byte_accounting"] = {
+        "original_payload_bytes": original_payload_bytes,
+        "json_payload_bytes": json_payload_bytes,
+        "crop_payload_bytes": crop_payload_bytes,
+        "transmitted_payload_bytes": transmitted_payload_bytes,
+        "bandwidth_saved_bytes": bandwidth_saved_bytes(original_payload_bytes, transmitted_payload_bytes),
     }
 
 

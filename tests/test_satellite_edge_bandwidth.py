@@ -178,16 +178,31 @@ class OrbitalPassTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            records = simulate_orbital_pass(raw_tiles, queue, detector_mode="baseline")
+            records = simulate_orbital_pass(raw_tiles, queue, detector_mode="baseline", reset_queue=True)
 
             crop_path = Path(records[0]["crop_path"])
             payload_path = queue / "kiln_crop_test.json"
             payload = json.loads(payload_path.read_text(encoding="utf-8"))
             self.assertTrue(crop_path.exists())
+            self.assertGreater(crop_path.stat().st_size, 0)
+            self.assertEqual(payload["detector_mode"], "baseline")
+            self.assertFalse(payload["detector_is_real"])
+            self.assertTrue(payload["simulated"])
+            self.assertEqual(payload["action"], "TRANSMIT_ALERT")
             self.assertEqual(payload["crop_ref"], str(crop_path))
+            self.assertIn("crop_error", payload)
+            self.assertIsNone(payload["crop_error"])
             self.assertIsNone(records[0]["crop_error"])
             self.assertEqual(records[0]["crop_payload_bytes"], crop_path.stat().st_size)
             self.assertEqual(records[0]["json_payload_bytes"], len(encode_payload(payload)))
+            for key in (
+                "original_payload_bytes",
+                "json_payload_bytes",
+                "crop_payload_bytes",
+                "transmitted_payload_bytes",
+                "bandwidth_saved_bytes",
+            ):
+                self.assertEqual(payload["byte_accounting"][key], records[0][key])
             self.assertEqual(
                 records[0]["transmitted_payload_bytes"],
                 records[0]["json_payload_bytes"] + records[0]["crop_payload_bytes"],

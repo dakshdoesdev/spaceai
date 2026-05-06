@@ -10,7 +10,7 @@ import shutil
 
 from .baseline_detector import is_tile_file
 from .detectors import Detector, build_detector_with_fallback
-from .payloads import build_transmission_payload, encode_payload, generate_crop_file, telemetry_record
+from .payloads import attach_byte_accounting, build_transmission_payload, encode_payload, generate_crop_file, telemetry_record
 from .yolo_detector import DEFAULT_MODEL_PATH, YoloDetectorError
 
 
@@ -53,7 +53,7 @@ def simulate_orbital_pass(
             crop_artifact = generate_crop_file(tile_path, detection, transmission_queue / "crops")
             payload = build_transmission_payload(detection, tile_path, crop_artifact)
             output_path = transmission_queue / f"{detection.tile_id}.json"
-            payload_bytes = encode_payload(payload)
+            payload_bytes = _finalize_payload_bytes(payload, original_bytes, crop_artifact.size_bytes)
             output_path.write_bytes(payload_bytes)
             json_payload_bytes = output_path.stat().st_size
             transmitted_bytes = json_payload_bytes + crop_artifact.size_bytes
@@ -75,6 +75,34 @@ def simulate_orbital_pass(
             records.append(record)
 
     return records
+
+
+def _finalize_payload_bytes(payload: dict, original_bytes: int, crop_bytes: int) -> bytes:
+    json_bytes = 0
+    transmitted_bytes = crop_bytes
+    for _ in range(8):
+        attach_byte_accounting(
+            payload,
+            original_payload_bytes=original_bytes,
+            json_payload_bytes=json_bytes,
+            crop_payload_bytes=crop_bytes,
+            transmitted_payload_bytes=transmitted_bytes,
+        )
+        payload_bytes = encode_payload(payload)
+        next_json_bytes = len(payload_bytes)
+        next_transmitted_bytes = next_json_bytes + crop_bytes
+        if next_json_bytes == json_bytes and next_transmitted_bytes == transmitted_bytes:
+            return payload_bytes
+        json_bytes = next_json_bytes
+        transmitted_bytes = next_transmitted_bytes
+    attach_byte_accounting(
+        payload,
+        original_payload_bytes=original_bytes,
+        json_payload_bytes=json_bytes,
+        crop_payload_bytes=crop_bytes,
+        transmitted_payload_bytes=transmitted_bytes,
+    )
+    return encode_payload(payload)
 
 
 def _reset_transmission_queue(transmission_queue: Path) -> None:
