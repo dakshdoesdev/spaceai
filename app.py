@@ -8,17 +8,30 @@ import streamlit as st
 from kilnwatch.ground_station import (
     calculate_metrics,
     cumulative_series,
-    detector_modes,
     display_decision,
     event_downlinked_bytes,
     format_bytes,
     load_ground_station_records,
+    mission_proof_counts,
+    proof_status_summary,
     received_alert_rows,
-    safe_review_payloads,
+    resolve_crop_evidence,
 )
 
 
 st.set_page_config(page_title="KilnWatch Ground Station", layout="wide")
+
+DETECTOR_PROOF_LABELS = (
+    "STRICT YOLO REAL",
+    "BASELINE SIMULATION",
+    "FALLBACK USED",
+    "SAMPLE DATA",
+)
+REASONER_PROOF_LABELS = (
+    "LIQUID LFM REAL",
+    "LIQUID MOCK",
+    "LFM DISABLED",
+)
 
 
 def main() -> None:
@@ -33,12 +46,15 @@ def main() -> None:
     if sample_data:
         st.warning("SAMPLE DATA - replace transmission_queue/ and telemetry_logs/ with mission outputs.")
 
-    render_status_badges(payloads, telemetry_events, sample_data)
+    render_proof_status(payloads, telemetry_events, sample_data)
 
     replay_events = mission_replay_controls(telemetry_events)
     metrics = calculate_metrics(replay_events)
+    counts = mission_proof_counts(payloads, replay_events)
 
-    render_metrics(metrics)
+    render_mission_metrics(metrics, counts)
+    render_edge_to_ground_explanation()
+    render_crop_review(payloads, replay_events)
     render_downlink_chart(replay_events)
 
     left, right = st.columns([1.25, 0.75], gap="large")
@@ -47,8 +63,6 @@ def main() -> None:
     with right:
         render_replay_status(replay_events, telemetry_events)
         render_technical_honesty()
-
-    render_review_payloads(payloads)
 
 
 def mission_replay_controls(events: list[dict]) -> list[dict]:
@@ -70,40 +84,58 @@ def mission_replay_controls(events: list[dict]) -> list[dict]:
     return events[:replay_index]
 
 
-def render_metrics(metrics) -> None:
+def render_mission_metrics(metrics, counts) -> None:
+    st.subheader("Mission Metrics")
     top = st.columns(4)
     top[0].metric("Tiles processed onboard", metrics.tiles_processed)
-    top[1].metric("Raw bytes processed", format_bytes(metrics.raw_bytes_processed))
-    top[2].metric("Downlinked bytes", format_bytes(metrics.downlinked_bytes))
-    top[3].metric("Bandwidth saved", f"{metrics.bandwidth_saved_percent:.1f}%")
+    top[1].metric("Detections", counts.detections)
+    top[2].metric("Crops generated", counts.crops_generated)
+    top[3].metric("Raw bytes", format_bytes(metrics.raw_bytes_processed))
 
     bottom = st.columns(4)
-    bottom[0].metric("Tiles ignored", metrics.ignored_tiles)
-    bottom[1].metric("JSON alerts", metrics.json_alerts)
-    bottom[2].metric("Crop/full review alerts", metrics.crop_or_full_review_alerts)
+    bottom[0].metric("Transmitted bytes", format_bytes(metrics.downlinked_bytes))
+    bottom[1].metric("Bandwidth saved", f"{metrics.bandwidth_saved_percent:.1f}%")
+    bottom[2].metric("Review alerts", metrics.crop_or_full_review_alerts)
     bottom[3].metric("Compression ratio", _ratio_label(metrics.compression_ratio))
 
+    st.caption(f"JSON alerts: {metrics.json_alerts} | Tiles ignored: {metrics.ignored_tiles}")
     st.caption(f"Average inference latency: {metrics.average_latency_ms:.2f} ms")
 
 
-def render_status_badges(payloads: list[dict], events: list[dict], sample_data: bool) -> None:
-    modes = detector_modes(payloads, events)
-    badges: list[tuple[str, str]] = []
-    if sample_data:
-        badges.append(("SAMPLE DATA", "#92400e"))
-    if any("baseline" in mode or "placeholder" in mode for mode in modes):
-        badges.append(("BASELINE SIMULATION", "#1f2937"))
-    if any("yolo" in mode for mode in modes):
-        badges.append(("REAL YOLO MODE", "#166534"))
-    if not badges:
-        badges.append(("DETECTOR METADATA UNKNOWN", "#475569"))
+def render_proof_status(payloads: list[dict], events: list[dict], sample_data: bool) -> None:
+    st.subheader("Proof Status")
+    status = proof_status_summary(payloads, events, sample_data)
+    detector_col, reasoner_col = st.columns(2)
+    detector_col.metric("Detector", status.detector_label)
+    reasoner_col.metric("Liquid reasoner", status.reasoner_label)
+    if status.notes:
+        st.warning(" | ".join(status.notes))
+    if status.truth_fields:
+        st.json(status.truth_fields, expanded=False)
 
-    html = " ".join(
-        f"<span style='display:inline-block;padding:0.35rem 0.6rem;margin:0 0.35rem 0.5rem 0;"
-        f"border-radius:6px;background:{color};color:white;font-weight:700;font-size:0.8rem;'>{label}</span>"
-        for label, color in badges
+
+def render_edge_to_ground_explanation() -> None:
+    st.info(
+        "Raw images are processed onboard; only JSON/crop artifacts downlinked; "
+        "ground station reads queue only."
     )
-    st.markdown(html, unsafe_allow_html=True)
+
+
+def render_crop_review(payloads: list[dict], events: list[dict]) -> None:
+    st.subheader("Crop Review")
+    evidence_rows = resolve_crop_evidence(payloads, events)
+    if not evidence_rows:
+        st.caption("no real crop available")
+        return
+    for evidence in evidence_rows:
+        if evidence.available and evidence.path is not None:
+            st.image(
+                str(evidence.path),
+                caption=f"tile_id={evidence.tile_id} | queue path={evidence.path}",
+                width="stretch",
+            )
+        else:
+            st.warning(f"{evidence.tile_id}: no real crop available")
 
 
 def render_downlink_chart(events: list[dict]) -> None:
@@ -123,7 +155,7 @@ def render_downlink_chart(events: list[dict]) -> None:
 
 
 def render_alert_table(payloads: list[dict], events: list[dict]) -> None:
-    st.subheader("Received Alert Payloads")
+    st.subheader("Alerts")
     rows = received_alert_rows(payloads, events)
     if not rows:
         st.info("No alert payloads received at this replay position.")
@@ -149,31 +181,12 @@ def render_technical_honesty() -> None:
         ("Real architecture", "satellite_edge_node writes queue payloads and telemetry; ground station reads only downlinked artifacts"),
         ("Simulated parts", "local orbital pass, placeholder raw tiles, baseline detector unless YOLO metadata is present"),
         ("Missing final integrations", "real Sentinel tiles, trained/validated YOLO weights, crop generation, threshold calibration"),
-        ("Future Liquid/LFM integration", "use Liquid model/VLM reasoning after detector candidate generation or for risk scoring"),
+        ("Liquid LFM", "optional crop-level structured reasoning; LFM DISABLED, LIQUID MOCK, and LIQUID LFM REAL are shown from payload metadata"),
         ("What is proven", "payload reduction math and ground-station boundary"),
         ("What is not proven yet", "real orbital deployment or fully validated model performance"),
     ]
     for label, value in rows:
         st.markdown(f"**{label}:** {value}")
-
-
-def render_review_payloads(payloads: list[dict]) -> None:
-    review_payloads = safe_review_payloads(payloads)
-    with st.expander("Review payload references"):
-        if not review_payloads:
-            st.caption("No crop/full-review payload references received.")
-            return
-        for payload in review_payloads:
-            st.json(
-                {
-                    "tile_id": payload.get("tile_id"),
-                    "decision": payload.get("triage_decision"),
-                    "payload_type": payload.get("payload_type"),
-                    "payload_uri": payload.get("payload_uri"),
-                    "note": "Ground station may inspect imagery only because this payload is review/full-downlink class.",
-                },
-                expanded=False,
-            )
 
 
 def _ratio_label(value: float) -> str:

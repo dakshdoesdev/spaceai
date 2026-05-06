@@ -12,6 +12,13 @@ TRANSMISSION_QUEUE_DIR = Path("transmission_queue")
 TELEMETRY_LOG_DIR = Path("telemetry_logs")
 ALT_TELEMETRY_LOG_DIR = Path("telemetry")
 REVIEW_DECISIONS = {"CROP_OR_REVIEW", "FULL_DOWNLINK"}
+CROP_REFERENCE_FIELDS = ("crop_ref", "crop_path", "payload_uri")
+NO_REAL_CROP_AVAILABLE = "no real crop available"
+FORBIDDEN_CROP_SOURCE_FRAGMENTS = (
+    "data/raw_tiles",
+    "data/final_demo_tiles",
+    "datasets/roboflow",
+)
 
 
 @dataclass(frozen=True)
@@ -26,6 +33,29 @@ class MissionMetrics:
     json_alerts: int
     crop_or_full_review_alerts: int
     average_latency_ms: float
+
+
+@dataclass(frozen=True)
+class ProofStatus:
+    detector_label: str
+    reasoner_label: str
+    truth_fields: dict[str, Any]
+    notes: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class MissionProofCounts:
+    detections: int
+    crops_generated: int
+
+
+@dataclass(frozen=True)
+class CropEvidence:
+    tile_id: str
+    available: bool
+    path: Path | None
+    message: str
+    source_field: str | None = None
 
 
 def load_ground_station_records(
@@ -117,7 +147,64 @@ def received_alert_rows(payloads: list[dict[str, Any]], events: list[dict[str, A
 
 def safe_review_payloads(payloads: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Return only payloads allowed to reference imagery at the ground station."""
-    return [payload for payload in payloads if _decision(payload) in REVIEW_DECISIONS and payload.get("payload_uri")]
+    return [payload for payload in payloads if _decision(payload) in REVIEW_DECISIONS]
+
+
+def proof_status_summary(
+    payloads: list[dict[str, Any]],
+    events: list[dict[str, Any]],
+    sample_data: bool = False,
+) -> ProofStatus:
+    items = [*payloads, *events]
+    truth_fields = _truth_fields(items)
+    detector_label = _detector_label(items, sample_data=sample_data)
+    reasoner_label = _reasoner_label(items)
+    notes = ("SAMPLE DATA",) if sample_data else ()
+    return ProofStatus(
+        detector_label=detector_label,
+        reasoner_label=reasoner_label,
+        truth_fields=truth_fields,
+        notes=notes,
+    )
+
+
+def mission_proof_counts(
+    payloads: list[dict[str, Any]],
+    events: list[dict[str, Any]],
+    queue_dir: Path = TRANSMISSION_QUEUE_DIR,
+) -> MissionProofCounts:
+    items = [*payloads, *events]
+    detections = sum(1 for item in items if _is_detection(item))
+    crops_generated = sum(1 for evidence in resolve_crop_evidence(payloads, events, queue_dir) if evidence.available)
+    return MissionProofCounts(detections=detections, crops_generated=crops_generated)
+
+
+def resolve_crop_evidence(
+    payloads: list[dict[str, Any]],
+    events: list[dict[str, Any]] | None = None,
+    queue_dir: Path = TRANSMISSION_QUEUE_DIR,
+) -> list[CropEvidence]:
+    by_tile = {payload.get("tile_id"): payload for payload in payloads}
+    review_items = list(safe_review_payloads(payloads))
+    for event in events or []:
+        if _decision(event) not in REVIEW_DECISIONS:
+            continue
+        if event.get("tile_id") not in by_tile:
+            review_items.append(event)
+
+    evidence: list[CropEvidence] = []
+    for item in review_items:
+        tile_id = str(item.get("tile_id") or "unknown")
+        source_field, raw_value = _crop_reference(item)
+        if raw_value is None:
+            evidence.append(CropEvidence(tile_id, False, None, NO_REAL_CROP_AVAILABLE, source_field))
+            continue
+        crop_path = _safe_crop_path(raw_value, queue_dir)
+        if crop_path is None or not crop_path.is_file() or crop_path.stat().st_size <= 0:
+            evidence.append(CropEvidence(tile_id, False, None, NO_REAL_CROP_AVAILABLE, source_field))
+            continue
+        evidence.append(CropEvidence(tile_id, True, crop_path, str(crop_path), source_field))
+    return evidence
 
 
 def detector_modes(payloads: list[dict[str, Any]], events: list[dict[str, Any]]) -> set[str]:
@@ -132,6 +219,25 @@ def detector_modes(payloads: list[dict[str, Any]], events: list[dict[str, Any]])
         modes.add(str(item.get("detector_version", "")).lower())
         modes.add(str(item.get("detector_mode", "")).lower())
     return {mode for mode in modes if mode}
+
+
+def reasoner_statuses(payloads: list[dict[str, Any]], events: list[dict[str, Any]]) -> set[str]:
+    statuses: set[str] = set()
+    for item in [*payloads, *events]:
+        reasoning = item.get("vlm_reasoning")
+        if not isinstance(reasoning, dict):
+            continue
+        mode = str(reasoning.get("reasoner_mode") or "").lower()
+        is_real = bool(reasoning.get("reasoner_is_real"))
+        if is_real:
+            statuses.add("liquid-real")
+        elif mode == "liquid-mock":
+            statuses.add("liquid-mock")
+        elif mode:
+            statuses.add(mode)
+    if not statuses:
+        statuses.add("disabled")
+    return statuses
 
 
 def display_decision(item: dict[str, Any]) -> str:
@@ -203,6 +309,103 @@ def _decision(item: dict[str, Any]) -> str:
             return "FULL_DOWNLINK"
         return "CROP_OR_REVIEW"
     return ""
+
+
+def _truth_fields(items: list[dict[str, Any]]) -> dict[str, Any]:
+    keys = (
+        "detector_mode",
+        "detector_is_real",
+        "simulated",
+        "fallback_used",
+        "fallback_reason",
+        "detector_version",
+        "model_path",
+        "model_name",
+        "confidence_threshold",
+    )
+    fields: dict[str, Any] = {}
+    for key in keys:
+        values = [item.get(key) for item in items if item.get(key) is not None]
+        if values:
+            fields[key] = values[0] if len(set(map(str, values))) == 1 else values
+    reasoning_fields = _reasoner_truth_fields(items)
+    if reasoning_fields:
+        fields["vlm_reasoning"] = reasoning_fields
+    return fields
+
+
+def _reasoner_truth_fields(items: list[dict[str, Any]]) -> dict[str, Any]:
+    keys = ("reasoner_mode", "reasoner_is_real", "model_name")
+    fields: dict[str, Any] = {}
+    reasonings = [item.get("vlm_reasoning") for item in items if isinstance(item.get("vlm_reasoning"), dict)]
+    for key in keys:
+        values = [reasoning.get(key) for reasoning in reasonings if reasoning.get(key) is not None]
+        if values:
+            fields[key] = values[0] if len(set(map(str, values))) == 1 else values
+    return fields
+
+
+def _detector_label(items: list[dict[str, Any]], *, sample_data: bool) -> str:
+    if sample_data:
+        return "SAMPLE DATA"
+    if any(bool(item.get("fallback_used")) for item in items):
+        return "FALLBACK USED"
+    modes = detector_modes([], items)
+    if any("yolo" in mode for mode in modes) and any(bool(item.get("detector_is_real")) for item in items):
+        return "STRICT YOLO REAL"
+    if any(bool(item.get("simulated")) for item in items) or any(
+        "baseline" in mode or "placeholder" in mode for mode in modes
+    ):
+        return "BASELINE SIMULATION"
+    return "DETECTOR METADATA UNKNOWN"
+
+
+def _reasoner_label(items: list[dict[str, Any]]) -> str:
+    statuses = reasoner_statuses([], items)
+    if "liquid-real" in statuses:
+        return "LIQUID LFM REAL"
+    if "liquid-mock" in statuses:
+        return "LIQUID MOCK"
+    return "LFM DISABLED"
+
+
+def _is_detection(item: dict[str, Any]) -> bool:
+    if item.get("kiln_detected") is True:
+        return True
+    if _decision(item) in REVIEW_DECISIONS or _decision(item) == "JSON_ALERT_ONLY":
+        return True
+    return item.get("action") == "TRANSMIT_ALERT" or item.get("event") == "alert"
+
+
+def _crop_reference(item: dict[str, Any]) -> tuple[str | None, str | None]:
+    for field in CROP_REFERENCE_FIELDS:
+        value = item.get(field)
+        if value:
+            return field, str(value)
+    return None, None
+
+
+def _safe_crop_path(value: str, queue_dir: Path) -> Path | None:
+    normalized_value = value.replace("\\", "/")
+    if normalized_value.endswith(".tile"):
+        return None
+    if any(fragment in normalized_value for fragment in FORBIDDEN_CROP_SOURCE_FRAGMENTS):
+        return None
+
+    queue_root = queue_dir.resolve()
+    raw_path = Path(value)
+    if raw_path.is_absolute():
+        candidate = raw_path
+    elif raw_path.parts and raw_path.parts[0] == queue_dir.name:
+        candidate = raw_path
+    else:
+        candidate = queue_dir / raw_path
+    resolved = candidate.resolve()
+    try:
+        resolved.relative_to(queue_root)
+    except ValueError:
+        return None
+    return resolved
 
 
 def _raw_bytes(event: dict[str, Any]) -> int:

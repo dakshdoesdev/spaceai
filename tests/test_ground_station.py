@@ -7,7 +7,11 @@ from kilnwatch.ground_station import (
     cumulative_series,
     detector_modes,
     load_ground_station_records,
+    mission_proof_counts,
+    proof_status_summary,
     received_alert_rows,
+    reasoner_statuses,
+    resolve_crop_evidence,
     safe_review_payloads,
 )
 
@@ -110,6 +114,134 @@ class GroundStationTests(unittest.TestCase):
         )
         self.assertIn("yolo_v8_real", modes)
         self.assertIn("baseline_detector:v0.1", modes)
+
+    def test_reasoner_statuses_distinguish_disabled_mock_and_real(self):
+        self.assertEqual(reasoner_statuses([], []), {"disabled"})
+
+        mock_status = reasoner_statuses(
+            [{"vlm_reasoning": {"reasoner_mode": "liquid-mock", "reasoner_is_real": False}}],
+            [],
+        )
+        self.assertEqual(mock_status, {"liquid-mock"})
+
+        real_status = reasoner_statuses(
+            [],
+            [{"vlm_reasoning": {"reasoner_mode": "liquid-local", "reasoner_is_real": True}}],
+        )
+        self.assertEqual(real_status, {"liquid-real"})
+
+    def test_proof_status_reports_strict_yolo_real(self):
+        status = proof_status_summary(
+            [
+                {
+                    "detector_mode": "yolo-strict",
+                    "detector_is_real": True,
+                    "simulated": False,
+                    "fallback_used": False,
+                    "detector_version": "ultralytics:yolov8",
+                    "confidence_threshold": 0.25,
+                }
+            ],
+            [],
+            sample_data=False,
+        )
+
+        self.assertEqual(status.detector_label, "STRICT YOLO REAL")
+        self.assertEqual(status.reasoner_label, "LFM DISABLED")
+        self.assertEqual(status.truth_fields["detector_mode"], "yolo-strict")
+        self.assertIs(status.truth_fields["detector_is_real"], True)
+        self.assertIs(status.truth_fields["simulated"], False)
+
+    def test_proof_status_reports_baseline_and_fallback_honestly(self):
+        baseline = proof_status_summary(
+            [{"detector_mode": "baseline", "detector_is_real": False, "simulated": True}],
+            [],
+        )
+        fallback = proof_status_summary(
+            [{"detector_mode": "baseline", "simulated": True, "fallback_used": True}],
+            [],
+        )
+
+        self.assertEqual(baseline.detector_label, "BASELINE SIMULATION")
+        self.assertIs(baseline.truth_fields["simulated"], True)
+        self.assertEqual(fallback.detector_label, "FALLBACK USED")
+        self.assertIs(fallback.truth_fields["fallback_used"], True)
+
+    def test_proof_status_reports_sample_data(self):
+        status = proof_status_summary([{"sample_demo_data": True}], [], sample_data=True)
+
+        self.assertEqual(status.detector_label, "SAMPLE DATA")
+        self.assertIn("SAMPLE DATA", status.notes)
+
+    def test_proof_status_distinguishes_liquid_mock_from_real(self):
+        mock = proof_status_summary(
+            [
+                {
+                    "vlm_reasoning": {
+                        "reasoner_mode": "liquid-mock",
+                        "reasoner_is_real": False,
+                        "model_name": "LiquidAI/LFM2.5-VL-450M (mock)",
+                    }
+                }
+            ],
+            [],
+        )
+        real = proof_status_summary(
+            [
+                {
+                    "vlm_reasoning": {
+                        "reasoner_mode": "liquid-local",
+                        "reasoner_is_real": True,
+                        "model_name": "LiquidAI/LFM2.5-VL-450M",
+                    }
+                }
+            ],
+            [],
+        )
+
+        self.assertEqual(mock.reasoner_label, "LIQUID MOCK")
+        self.assertEqual(real.reasoner_label, "LIQUID LFM REAL")
+        self.assertIs(mock.truth_fields["vlm_reasoning"]["reasoner_is_real"], False)
+        self.assertIs(real.truth_fields["vlm_reasoning"]["reasoner_is_real"], True)
+
+    def test_mission_proof_counts_detections_and_real_queue_crops(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            queue = Path(temp_dir) / "transmission_queue"
+            crops = queue / "crops"
+            crops.mkdir(parents=True)
+            crop_path = crops / "tile-a_crop.png"
+            crop_path.write_bytes(b"real crop bytes")
+
+            counts = mission_proof_counts(
+                [
+                    {
+                        "tile_id": "tile-a",
+                        "triage_decision": "CROP_OR_REVIEW",
+                        "kiln_detected": True,
+                        "crop_ref": str(crop_path),
+                    },
+                    {
+                        "tile_id": "tile-b",
+                        "triage_decision": "JSON_ALERT_ONLY",
+                        "kiln_detected": True,
+                    },
+                ],
+                [],
+                queue_dir=queue,
+            )
+
+        self.assertEqual(counts.detections, 2)
+        self.assertEqual(counts.crops_generated, 1)
+
+    def test_crop_evidence_reports_missing_crop_without_inventing_preview(self):
+        evidence = resolve_crop_evidence(
+            [{"tile_id": "tile-a", "triage_decision": "CROP_OR_REVIEW"}],
+            [],
+        )
+
+        self.assertEqual(len(evidence), 1)
+        self.assertFalse(evidence[0].available)
+        self.assertEqual(evidence[0].message, "no real crop available")
 
 
 if __name__ == "__main__":
