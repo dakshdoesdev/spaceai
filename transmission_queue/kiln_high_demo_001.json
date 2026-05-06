@@ -1,1 +1,0 @@
-{"compliance_risk":"high","confidence":0.86,"coordinates":{"lat":29.3901,"lon":76.9632},"crop_ref":"crop://kiln_high_demo_001","detector_version":"baseline_detector:v0.1","event":"alert","signals":["placeholder_sidecar_label","active_or_near_settlement_hint"],"source_tile_name":"kiln_high_demo_001.tile","tile_id":"kiln_high_demo_001"}

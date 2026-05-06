@@ -131,6 +131,38 @@ python -m satellite_edge_node.orbital_pass \
 
 `--reset-queue` refreshes only generated queue artifacts in the selected transmission queue: top-level payload JSON files, `telemetry.jsonl`, and the runner-owned `crops/` directory. It does not delete raw tile inputs, dataset files, source code, or docs.
 
+## Final Strict YOLO Demo Run
+
+For the final video/submission proof, do not use placeholder `.tile` files. Use the real JPG fixtures copied into `data/final_demo_tiles/`.
+
+```bash
+python -m satellite_edge_node.orbital_pass \
+  --raw-tiles data/final_demo_tiles \
+  --transmission-queue transmission_queue \
+  --detector yolo \
+  --model-path models/brick_kiln_yolo.pt \
+  --confidence-threshold 0.05 \
+  --reset-queue
+```
+
+Expected evidence from the current final queue:
+
+| Metric | Value |
+| --- | ---: |
+| Test images processed | 9 |
+| Detector mode | YOLO |
+| Simulated? | false |
+| Raw bytes processed | 711,843 |
+| Transmitted bytes | 15,983 |
+| Compression ratio | 44.54x |
+| Bandwidth saved | 695,860 bytes |
+| Detections | 5 |
+| Crops generated | 5 |
+| Image-level false positives | 0 |
+| Image-level false negatives | 4 |
+
+All non-null `crop_ref` values in `transmission_queue/*.json` must point to non-empty files under `transmission_queue/crops/`.
+
 ### Detector Honesty Note
 - baseline mode is simulated
 - strict YOLO requires `models/brick_kiln_yolo.pt` and `ultralytics`

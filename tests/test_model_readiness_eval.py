@@ -17,10 +17,63 @@ class ModelReadinessAndEvaluationTests(unittest.TestCase):
         self.assertTrue(any("weights not found" in item for item in result["missing"]))
 
     def test_evaluator_marks_baseline_sample_as_simulated(self):
-        result = evaluate_detector(
-            Path("datasets/kilnwatch/manifests/baseline_sample_eval_manifest.jsonl"),
-            Path("transmission_queue/telemetry.jsonl"),
-        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            telemetry = Path(temp_dir) / "telemetry.jsonl"
+            telemetry.write_text(
+                "\n".join(
+                    [
+                        json.dumps(
+                            {
+                                "tile_id": "farm_negative_demo_001",
+                                "detector_version": "baseline_detector:v0.1",
+                                "detector_mode": "baseline",
+                                "requested_detector_mode": "baseline",
+                                "detector_is_real": False,
+                                "simulated": True,
+                                "kiln_detected": False,
+                                "confidence": 0.08,
+                                "original_payload_bytes": 1000,
+                                "transmitted_payload_bytes": 100,
+                            }
+                        ),
+                        json.dumps(
+                            {
+                                "tile_id": "kiln_high_demo_001",
+                                "detector_version": "baseline_detector:v0.1",
+                                "detector_mode": "baseline",
+                                "requested_detector_mode": "baseline",
+                                "detector_is_real": False,
+                                "simulated": True,
+                                "kiln_detected": True,
+                                "confidence": 0.74,
+                                "original_payload_bytes": 1000,
+                                "transmitted_payload_bytes": 100,
+                            }
+                        ),
+                        json.dumps(
+                            {
+                                "tile_id": "settlement_negative_demo_001",
+                                "detector_version": "baseline_detector:v0.1",
+                                "detector_mode": "baseline",
+                                "requested_detector_mode": "baseline",
+                                "detector_is_real": False,
+                                "simulated": True,
+                                "kiln_detected": False,
+                                "confidence": 0.08,
+                                "original_payload_bytes": 1000,
+                                "transmitted_payload_bytes": 100,
+                            }
+                        ),
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = evaluate_detector(
+                Path("datasets/kilnwatch/manifests/baseline_sample_eval_manifest.jsonl"),
+                telemetry,
+            )
 
         self.assertEqual(result["evaluation_status"], "simulated_baseline")
         self.assertEqual(result["detector_mode_used"], "baseline")
@@ -110,4 +163,3 @@ class ModelReadinessAndEvaluationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
