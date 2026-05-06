@@ -6,6 +6,7 @@ import argparse
 import json
 import time
 from pathlib import Path
+import shutil
 
 from .baseline_detector import is_tile_file
 from .detectors import Detector, build_detector_with_fallback
@@ -26,7 +27,10 @@ def simulate_orbital_pass(
     model_path: Path = DEFAULT_MODEL_PATH,
     confidence_threshold: float = 0.25,
     allow_baseline_fallback: bool = False,
+    reset_queue: bool = False,
 ) -> list[dict]:
+    if reset_queue:
+        _reset_transmission_queue(transmission_queue)
     transmission_queue.mkdir(parents=True, exist_ok=True)
     telemetry_path = transmission_queue / "telemetry.jsonl"
     records: list[dict] = []
@@ -73,6 +77,23 @@ def simulate_orbital_pass(
     return records
 
 
+def _reset_transmission_queue(transmission_queue: Path) -> None:
+    if not transmission_queue.exists():
+        return
+
+    for payload_path in transmission_queue.glob("*.json"):
+        if payload_path.is_file():
+            payload_path.unlink()
+
+    telemetry_path = transmission_queue / "telemetry.jsonl"
+    if telemetry_path.exists() and telemetry_path.is_file():
+        telemetry_path.unlink()
+
+    crops_dir = transmission_queue / "crops"
+    if crops_dir.exists() and crops_dir.is_dir():
+        shutil.rmtree(crops_dir)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Simulate KilnWatch satellite-edge orbital pass.")
     parser.add_argument("--raw-tiles", type=Path, default=Path("data/raw_tiles"))
@@ -80,6 +101,11 @@ def main() -> int:
     parser.add_argument("--detector", choices=("baseline", "yolo"), default="baseline")
     parser.add_argument("--model-path", type=Path, default=DEFAULT_MODEL_PATH)
     parser.add_argument("--confidence-threshold", type=float, default=0.25)
+    parser.add_argument(
+        "--reset-queue",
+        action="store_true",
+        help="Delete generated payload JSON, telemetry, and crops in the selected queue before processing.",
+    )
     parser.add_argument(
         "--allow-baseline-fallback",
         action="store_true",
@@ -95,6 +121,7 @@ def main() -> int:
             model_path=args.model_path,
             confidence_threshold=args.confidence_threshold,
             allow_baseline_fallback=args.allow_baseline_fallback,
+            reset_queue=args.reset_queue,
         )
     except YoloDetectorError as exc:
         print(f"Detector setup failed: {exc}")

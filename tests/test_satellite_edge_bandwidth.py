@@ -108,6 +108,48 @@ class OrbitalPassTests(unittest.TestCase):
             self.assertFalse(records[0]["detector_is_real"])
             self.assertTrue(records[0]["simulated"])
 
+    def test_reset_queue_removes_only_generated_queue_artifacts(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            raw_tiles = root / "raw_tiles"
+            queue = root / "queue"
+            crops = queue / "crops"
+            raw_tiles.mkdir()
+            crops.mkdir(parents=True)
+
+            tile = raw_tiles / "kiln_high_001.tile"
+            sidecar = tile.with_suffix(tile.suffix + ".meta.json")
+            tile.write_bytes(b"x" * 2048)
+            sidecar.write_text(
+                json.dumps(
+                    {
+                        "tile_id": "kiln_high_001",
+                        "kiln_detected": True,
+                        "confidence": 0.88,
+                        "compliance_risk": "high",
+                        "bbox": [4, 4, 20, 20],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (queue / "stale_payload.json").write_text('{"stale":true}', encoding="utf-8")
+            (queue / "telemetry.jsonl").write_text('{"tile_id":"stale"}\n', encoding="utf-8")
+            (crops / "stale_crop.png").write_bytes(b"stale")
+            preserved = queue / "manual_notes.txt"
+            preserved.write_text("keep me", encoding="utf-8")
+
+            records = simulate_orbital_pass(raw_tiles, queue, detector_mode="baseline", reset_queue=True)
+            telemetry_lines = (queue / "telemetry.jsonl").read_text(encoding="utf-8").splitlines()
+
+            self.assertEqual(len(records), 1)
+            self.assertEqual(len(telemetry_lines), 1)
+            self.assertIn("kiln_high_001", telemetry_lines[0])
+            self.assertFalse((queue / "stale_payload.json").exists())
+            self.assertFalse((crops / "stale_crop.png").exists())
+            self.assertTrue(preserved.exists())
+            self.assertTrue(tile.exists())
+            self.assertTrue(sidecar.exists())
+
     def test_real_crop_file_is_created_from_png_and_counted_in_bytes(self):
         try:
             from PIL import Image

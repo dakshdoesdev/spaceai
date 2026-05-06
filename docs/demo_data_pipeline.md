@@ -125,8 +125,11 @@ Then run the satellite-side pass:
 ```bash
 python -m satellite_edge_node.orbital_pass \
   --raw-tiles data/raw_tiles \
-  --transmission-queue transmission_queue
+  --transmission-queue transmission_queue \
+  --reset-queue
 ```
+
+`--reset-queue` refreshes only generated queue artifacts in the selected transmission queue: top-level payload JSON files, `telemetry.jsonl`, and the runner-owned `crops/` directory. It does not delete raw tile inputs, dataset files, source code, or docs.
 
 ### Detector Honesty Note
 - baseline mode is simulated
