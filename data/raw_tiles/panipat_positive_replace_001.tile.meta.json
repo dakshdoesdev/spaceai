@@ -1,0 +1,17 @@
+{
+  "compliance_risk": "medium",
+  "confidence": 0.5,
+  "coordinates": {
+    "lat": 29.3909,
+    "lon": 76.9635
+  },
+  "kiln_detected": true,
+  "mode": "placeholder",
+  "notes": "Replace with real APAD/manual kiln coordinate before claiming ground truth.",
+  "region_name": "Panipat Haryana",
+  "signals": [
+    "coordinate_manifest_label"
+  ],
+  "source": "apad_or_manual_local_csv",
+  "tile_id": "panipat_positive_replace_001"
+}

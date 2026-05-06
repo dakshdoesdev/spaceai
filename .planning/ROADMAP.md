@@ -30,8 +30,13 @@ KilnWatch's final submission path is a four-phase sprint: first make the satelli
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 - [ ] 01-01-PLAN.md — Add/confirm fresh demo run workflow and queue reset/run isolation.
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — Harden detector readiness, strict YOLO failure, and simulation/fallback metadata.
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 01-03-PLAN.md — Verify real crop artifact generation and payload references.
 
 ### Phase 2: Ground Station Polish

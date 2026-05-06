@@ -1,0 +1,6 @@
+KILNWATCH_PLACEHOLDER_TILE
+tile_id=panipat_ag_fields_negative_001
+lat=29.410000
+lon=76.990000
+expected_label=negative
+This is not satellite imagery. Replace with a real SimSat/Sentinel tile.

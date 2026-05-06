@@ -1,0 +1,17 @@
+{
+  "compliance_risk": "low",
+  "confidence": 0.5,
+  "coordinates": {
+    "lat": 29.375,
+    "lon": 76.945
+  },
+  "kiln_detected": false,
+  "mode": "placeholder",
+  "notes": "Settlement-like area without visible kiln; verify no kiln in selected tile.",
+  "region_name": "Panipat settlement control",
+  "signals": [
+    "coordinate_manifest_label"
+  ],
+  "source": "manual_negative_control",
+  "tile_id": "panipat_settlement_negative_001"
+}

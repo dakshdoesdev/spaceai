@@ -1,0 +1,15 @@
+{
+  "tile_id": "kiln_high_demo_001",
+  "kiln_detected": true,
+  "confidence": 0.86,
+  "compliance_risk": "high",
+  "coordinates": {
+    "lat": 29.3901,
+    "lon": 76.9632
+  },
+  "signals": [
+    "placeholder_sidecar_label",
+    "active_or_near_settlement_hint"
+  ],
+  "crop_ref": "crop://kiln_high_demo_001"
+}

@@ -1,0 +1,17 @@
+{
+  "compliance_risk": "low",
+  "confidence": 0.5,
+  "coordinates": {
+    "lat": 29.41,
+    "lon": 76.99
+  },
+  "kiln_detected": false,
+  "mode": "placeholder",
+  "notes": "Agricultural fields negative control; verify no kiln in selected tile.",
+  "region_name": "Panipat agricultural control",
+  "signals": [
+    "coordinate_manifest_label"
+  ],
+  "source": "manual_negative_control",
+  "tile_id": "panipat_ag_fields_negative_001"
+}

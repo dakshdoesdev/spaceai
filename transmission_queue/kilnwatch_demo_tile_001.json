@@ -1,0 +1,12 @@
+{
+  "sample_demo_data": true,
+  "tile_id": "kilnwatch_demo_tile_001",
+  "triage_decision": "FULL_DOWNLINK",
+  "payload_type": "full_tile_reference",
+  "payload_uri": "orbital-buffer://kilnwatch_demo_tile_001/full-tile",
+  "confidence": 0.91,
+  "compliance_risk_score": 0.86,
+  "downlinked_bytes": 12582912,
+  "alert": "High-confidence brick kiln with high compliance risk. Full tile preserved for compliance review."
+}
+

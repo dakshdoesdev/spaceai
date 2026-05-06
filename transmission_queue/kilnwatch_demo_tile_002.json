@@ -1,0 +1,11 @@
+{
+  "sample_demo_data": true,
+  "tile_id": "kilnwatch_demo_tile_002",
+  "triage_decision": "JSON_ALERT_ONLY",
+  "payload_type": "json_alert",
+  "confidence": 0.74,
+  "compliance_risk_score": 0.28,
+  "downlinked_bytes": 4096,
+  "alert": "Kiln likely, low risk. JSON alert downlinked; raw tile not transmitted."
+}
+

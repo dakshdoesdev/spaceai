@@ -11,7 +11,7 @@ dependencies = []
 
 [project.scripts]
 kilnwatch-fetch-panipat = "kilnwatch.ingestion.cli:main"
+kilnwatch-orbital-pass = "satellite_edge_node.orbital_pass:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-

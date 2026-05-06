@@ -1,0 +1,21 @@
+{
+  "average_confidence": 0.56,
+  "bandwidth_saved": 1634,
+  "bandwidth_saved_percent": 73.54,
+  "detected_positives": 1,
+  "detector_mode_used": "baseline",
+  "downlinked_bytes": 588,
+  "evaluated_tiles": 3,
+  "evaluation_status": "simulated_baseline",
+  "false_negatives": 0,
+  "false_positives": 0,
+  "manifest_path": "datasets/kilnwatch/manifests/baseline_sample_eval_manifest.jsonl",
+  "missing_predictions": [],
+  "negatives": 2,
+  "number_of_tiles": 3,
+  "overclaim_warning": "SIMULATED/SAMPLE evaluation; do not claim real detector accuracy.",
+  "positives": 1,
+  "raw_bytes_processed": 2222,
+  "telemetry_path": "transmission_queue/telemetry.jsonl"
+}
+

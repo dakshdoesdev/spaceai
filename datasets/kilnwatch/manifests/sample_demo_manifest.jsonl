@@ -1,0 +1,3 @@
+{"tile_id":"sample_demo_panipat_001","image_path":"datasets/kilnwatch/images/demo/sample_demo_panipat_001.png","lat":29.3909,"lon":76.9635,"source":"sample_demo_not_ground_truth","split":"demo","label":"sample_positive","kiln_detected":true,"bbox":[120,90,220,180],"confidence":0.5,"notes":"Sample/demo row only. Not ground truth."}
+{"tile_id":"sample_demo_panipat_002","image_path":"datasets/kilnwatch/images/demo/sample_demo_panipat_002.png","lat":29.401,"lon":76.98,"source":"sample_demo_not_ground_truth","split":"demo","label":"sample_negative","kiln_detected":false,"bbox":null,"confidence":0.5,"notes":"Sample/demo row only. Not ground truth."}
+
