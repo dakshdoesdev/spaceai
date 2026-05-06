@@ -10,7 +10,7 @@ KilnWatch's final submission path is a four-phase sprint: first make the satelli
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions
 
-- [ ] **Phase 1: Strict Demo Chain** - Produce a fresh, honest edge-run proof with real crop artifacts and detector readiness checks.
+- [x] **Phase 1: Strict Demo Chain** - Produce a fresh, honest edge-run proof with real crop artifacts and detector readiness checks.
 - [ ] **Phase 2: Ground Station Polish** - Make the dashboard the primary judge-facing proof of queue-only downlink triage.
 - [ ] **Phase 3: Public Story and Docs** - Make README/docs technically honest, compelling, and aligned with hackathon criteria.
 - [ ] **Phase 4: Submission Verification** - Verify tests, manifests, demo script, form answers, repo cleanliness, and final risk.
@@ -31,13 +31,13 @@ KilnWatch's final submission path is a four-phase sprint: first make the satelli
 
 Plans:
 **Wave 1**
-- [ ] 01-01-PLAN.md — Add/confirm fresh demo run workflow and queue reset/run isolation.
+- [x] 01-01-PLAN.md — Add/confirm fresh demo run workflow and queue reset/run isolation.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 01-02-PLAN.md — Harden detector readiness, strict YOLO failure, and simulation/fallback metadata.
+- [x] 01-02-PLAN.md — Harden detector readiness, strict YOLO failure, and simulation/fallback metadata.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 01-03-PLAN.md — Verify real crop artifact generation and payload references.
+- [x] 01-03-PLAN.md — Verify real crop artifact generation and payload references.
 
 ### Phase 2: Ground Station Polish
 **Goal**: The Streamlit dashboard clearly demonstrates satellite-side triage, bandwidth savings, alerts, crops, and honesty state from queue artifacts only.
@@ -93,7 +93,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Strict Demo Chain | 0/3 | Not started | - |
+| 1. Strict Demo Chain | 3/3 | Complete | 2026-05-06 |
 | 2. Ground Station Polish | 0/2 | Not started | - |
 | 3. Public Story and Docs | 0/2 | Not started | - |
 | 4. Submission Verification | 0/3 | Not started | - |
