@@ -61,10 +61,14 @@ Submission framing:
 - Recommended track: General Track unless Liquid LFM integration/fine-tuning lands before submission
 - One-line pitch: Satellite-side brick kiln triage that downlinks JSON alerts and crops instead of full raw imagery.
 - Core story: real-world environmental compliance monitoring with satellite-side compute and bandwidth-aware downlink reduction
+- Event details from the registration page: Hack #05 AI in Space, Liquid AI x DPhi Space, fully online, April 13 5:30 PM to May 9 5:30 AM GMT+5:30, Discord-based community, with submissions opened May 4.
+- Judging criteria from the event page: use of satellite imagery from the DPhi API, innovation and problem-solution fit, technical implementation that runs without debugging, and an end-to-end demo walkthrough.
+- Track framing from the event page: Liquid Track expects LFM2-VL/LFM2.5-VL usage with fine-tuning encouraged; General AI Track accepts any AI approach but prefers solutions designed around limited downlink, continuous streams, and onboard inference.
+- Relevant SimSat endpoints from event updates: historical Sentinel `/data/image/sentinel`, historical Mapbox `/data/image/mapbox`, current Sentinel/Mapbox endpoints as provided by SimSat. Only claim endpoints that the repo actually uses.
 
 ## Constraints
 
-- **Deadline**: The official 2026 Liquid AI hackathon page lists AI in Space as April 13 to May 8, 2026; submit early because the form warns missing materials will not be chased.
+- **Deadline**: Event materials show the hackathon ending around May 9, 2026 in local GMT+5:30 display, while the submission blast text contains a likely stale "May 9, 2025" date. Submit as early as possible and do not depend on last-hour fixes.
 - **Submission honesty**: Do not imply the project uses Liquid LFM, Sentinel imagery, trained YOLO weights, or a deployed satellite payload unless the repo proves it.
 - **Detector readiness**: Strict YOLO mode requires `models/brick_kiln_yolo.pt` and `ultralytics`; if absent, real detector claims are blocked.
 - **Data proof**: Placeholder `.tile` blobs cannot be described as real Sentinel imagery; the final demo needs at least one real image/crop path or a clearly disclosed manual/simulated fixture.
