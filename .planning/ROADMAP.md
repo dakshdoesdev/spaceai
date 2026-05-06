@@ -30,9 +30,9 @@ KilnWatch's final submission path is a four-phase sprint: first make the satelli
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Add/confirm fresh demo run workflow and queue reset/run isolation.
-- [ ] 01-02: Harden detector readiness, strict YOLO failure, and simulation/fallback metadata.
-- [ ] 01-03: Verify real crop artifact generation and payload references.
+- [ ] 01-01-PLAN.md — Add/confirm fresh demo run workflow and queue reset/run isolation.
+- [ ] 01-02-PLAN.md — Harden detector readiness, strict YOLO failure, and simulation/fallback metadata.
+- [ ] 01-03-PLAN.md — Verify real crop artifact generation and payload references.
 
 ### Phase 2: Ground Station Polish
 **Goal**: The Streamlit dashboard clearly demonstrates satellite-side triage, bandwidth savings, alerts, crops, and honesty state from queue artifacts only.
@@ -92,4 +92,3 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 2. Ground Station Polish | 0/2 | Not started | - |
 | 3. Public Story and Docs | 0/2 | Not started | - |
 | 4. Submission Verification | 0/3 | Not started | - |
-
