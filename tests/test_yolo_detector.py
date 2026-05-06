@@ -1,5 +1,7 @@
 from pathlib import Path
 import importlib.util
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -66,6 +68,39 @@ class YoloDetectorTests(unittest.TestCase):
             self.assertFalse(detection.detector_is_real)
             self.assertTrue(detection.simulated)
             self.assertEqual(detection.fallback_reason, reason)
+
+    def test_strict_yolo_cli_fails_loudly_without_fallback(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            raw_tiles = root / "raw_tiles"
+            queue = root / "queue"
+            missing = root / "missing.pt"
+            raw_tiles.mkdir()
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "satellite_edge_node.orbital_pass",
+                    "--raw-tiles",
+                    str(raw_tiles),
+                    "--transmission-queue",
+                    str(queue),
+                    "--detector",
+                    "yolo",
+                    "--model-path",
+                    str(missing),
+                ],
+                check=False,
+                text=True,
+                capture_output=True,
+            )
+
+            output = result.stdout + result.stderr
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("Detector setup failed", output)
+            self.assertIn("--allow-baseline-fallback", output)
+            self.assertFalse((queue / "telemetry.jsonl").exists())
 
     def test_yolo_results_normalize_to_payload_schema(self):
         detection = normalize_yolo_results(tile_id="tile_001", results=[FakeResult()], confidence_threshold=0.25)
