@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .baseline_detector import DetectionResult
+from .liquid_vlm_reasoner import VlmReasoning
 
 
 ALERT_RISKS = {"medium", "high"}
@@ -58,19 +59,22 @@ def build_transmission_payload(
     detection: DetectionResult,
     tile_path: Path,
     crop_artifact: CropArtifact | None = None,
+    vlm_reasoning: VlmReasoning | None = None,
 ) -> dict[str, Any]:
     truth = _truth_metadata(detection)
     if not should_transmit_alert(detection):
-        return {
+        payload = {
             "event": "dropped",
             "tile_id": detection.tile_id,
             "action": "DROP_RAW_TILE",
             **truth,
         }
+        _attach_vlm_reasoning(payload, vlm_reasoning)
+        return payload
 
     crop_ref = str(crop_artifact.path) if crop_artifact and crop_artifact.path else None
     crop_error = crop_artifact.error if crop_artifact else None
-    return {
+    payload = {
         "event": "alert",
         "tile_id": detection.tile_id,
         "source_tile_name": tile_path.name,
@@ -84,6 +88,8 @@ def build_transmission_payload(
         "signals": detection.signals,
         **truth,
     }
+    _attach_vlm_reasoning(payload, vlm_reasoning)
+    return payload
 
 
 def attach_byte_accounting(
@@ -133,8 +139,9 @@ def telemetry_record(
     crop_path: Path | None,
     crop_error: str | None,
     output_path: Path,
+    vlm_reasoning: VlmReasoning | None = None,
 ) -> dict[str, Any]:
-    return {
+    record = {
         "tile_id": detection.tile_id,
         "tile_file": str(tile_path),
         "detector_version": detection.detector_version,
@@ -159,6 +166,8 @@ def telemetry_record(
         "crop_error": crop_error,
         "detection": asdict(detection),
     }
+    _attach_vlm_reasoning(record, vlm_reasoning)
+    return record
 
 
 def _truth_metadata(detection: DetectionResult) -> dict[str, Any]:
@@ -172,6 +181,11 @@ def _truth_metadata(detection: DetectionResult) -> dict[str, Any]:
     if detection.fallback_reason:
         payload["fallback_reason"] = detection.fallback_reason
     return payload
+
+
+def _attach_vlm_reasoning(payload: dict[str, Any], vlm_reasoning: VlmReasoning | None) -> None:
+    if vlm_reasoning is not None:
+        payload["vlm_reasoning"] = vlm_reasoning.to_payload()
 
 
 def _crop_box_from_bbox(bbox: list[float], image_size: tuple[int, int]) -> tuple[int, int, int, int] | None:

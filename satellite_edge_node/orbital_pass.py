@@ -10,6 +10,7 @@ import shutil
 
 from .baseline_detector import is_tile_file
 from .detectors import Detector, build_detector_with_fallback
+from .liquid_vlm_reasoner import LiquidReasonerError, Reasoner, build_reasoner
 from .payloads import attach_byte_accounting, build_transmission_payload, encode_payload, generate_crop_file, telemetry_record
 from .yolo_detector import DEFAULT_MODEL_PATH, YoloDetectorError
 
@@ -27,6 +28,8 @@ def simulate_orbital_pass(
     model_path: Path = DEFAULT_MODEL_PATH,
     confidence_threshold: float = 0.25,
     allow_baseline_fallback: bool = False,
+    reasoner: Reasoner | None = None,
+    reasoner_mode: str = "disabled",
     reset_queue: bool = False,
 ) -> list[dict]:
     if reset_queue:
@@ -42,6 +45,8 @@ def simulate_orbital_pass(
             confidence_threshold=confidence_threshold,
             fallback_to_baseline=allow_baseline_fallback,
         )
+    if reasoner is None:
+        reasoner = build_reasoner(reasoner_mode)
 
     with telemetry_path.open("a", encoding="utf-8") as telemetry:
         for tile_path in discover_tiles(raw_tiles_dir):
@@ -51,7 +56,14 @@ def simulate_orbital_pass(
             latency_ms = (time.perf_counter() - started) * 1000
 
             crop_artifact = generate_crop_file(tile_path, detection, transmission_queue / "crops")
-            payload = build_transmission_payload(detection, tile_path, crop_artifact)
+            vlm_reasoning = None
+            if reasoner is not None and detection.kiln_detected:
+                vlm_reasoning = reasoner.reason(
+                    image_path=tile_path,
+                    detection=detection,
+                    crop_path=crop_artifact.path,
+                )
+            payload = build_transmission_payload(detection, tile_path, crop_artifact, vlm_reasoning)
             output_path = transmission_queue / f"{detection.tile_id}.json"
             payload_bytes = _finalize_payload_bytes(payload, original_bytes, crop_artifact.size_bytes)
             output_path.write_bytes(payload_bytes)
@@ -69,8 +81,10 @@ def simulate_orbital_pass(
                 crop_path=crop_artifact.path,
                 crop_error=crop_artifact.error,
                 output_path=output_path,
+                vlm_reasoning=vlm_reasoning,
             )
             record["requested_detector_mode"] = detector_mode
+            record["requested_reasoner_mode"] = reasoner_mode
             telemetry.write(json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n")
             records.append(record)
 
@@ -127,6 +141,7 @@ def main() -> int:
     parser.add_argument("--raw-tiles", type=Path, default=Path("data/raw_tiles"))
     parser.add_argument("--transmission-queue", type=Path, default=Path("transmission_queue"))
     parser.add_argument("--detector", choices=("baseline", "yolo"), default="baseline")
+    parser.add_argument("--reasoner", choices=("disabled", "liquid-mock", "liquid-local"), default="disabled")
     parser.add_argument("--model-path", type=Path, default=DEFAULT_MODEL_PATH)
     parser.add_argument("--confidence-threshold", type=float, default=0.25)
     parser.add_argument(
@@ -149,12 +164,17 @@ def main() -> int:
             model_path=args.model_path,
             confidence_threshold=args.confidence_threshold,
             allow_baseline_fallback=args.allow_baseline_fallback,
+            reasoner_mode=args.reasoner,
             reset_queue=args.reset_queue,
         )
     except YoloDetectorError as exc:
         print(f"Detector setup failed: {exc}")
         print("Use --detector baseline for explicit simulation, or --allow-baseline-fallback to opt into simulated fallback.")
         return 2
+    except LiquidReasonerError as exc:
+        print(f"Liquid reasoner setup/inference failed: {exc}")
+        print("Use --reasoner disabled for YOLO-only mode, or --reasoner liquid-mock for explicit simulated reasoning.")
+        return 3
     total_raw = sum(record["original_payload_bytes"] for record in records)
     total_transmitted = sum(record["transmitted_payload_bytes"] for record in records)
     saved = max(0, total_raw - total_transmitted)
@@ -167,6 +187,7 @@ def main() -> int:
     print(f"Transmitted bytes: {total_transmitted}")
     print(f"Bandwidth saved: {saved} bytes")
     print(f"Compression ratio: {ratio}")
+    print(f"Reasoner mode: {args.reasoner}")
     print(f"Transmission queue: {args.transmission_queue}")
     return 0
 
