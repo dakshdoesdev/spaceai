@@ -349,22 +349,22 @@ with Image.open(tile_path) as image:
 | A2 | Ownership normalization can be handled by generating into a user-writable queue path if root-owned committed artifacts cannot be changed. | Common Pitfalls | If final docs must use exactly `transmission_queue/`, planner may need an ownership or cleanup task. |
 | A3 | `PermissionError` is the likely failure mode for root-owned queue reset. | Common Pitfalls | If the actual failure differs, tests may need broader filesystem error assertions. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 1 use reset-in-place or per-run output directories?**
    - What we know: ROADMAP plan 01-01 names "queue reset/run isolation", and production run IDs are deferred to v2. [VERIFIED: .planning/ROADMAP.md] [VERIFIED: .planning/REQUIREMENTS.md]
-   - What's unclear: Whether judges should always inspect `transmission_queue/` or a generated path such as `transmission_queue/demo_run/`. [ASSUMED]
-   - Recommendation: Use `--reset-queue` for the selected queue path now; optionally allow `--transmission-queue transmission_queue/demo_run` without adding a run registry. [ASSUMED]
+   - Resolution: Use reset-in-place for Phase 1 via `--reset-queue` on the selected queue path. This keeps the judge workflow simple and satisfies VAL-04 without adding the v2 run registry.
+   - Planner decision: Plan 01-01 owns `--reset-queue` and scoped deletion tests. Users may still pass `--transmission-queue transmission_queue/demo_run`, but Phase 1 does not add a run registry.
 
 2. **What readable raster should be the canonical crop-proof input?**
    - What we know: Current committed `data/raw_tiles/*.tile` files are placeholder blobs and root-owned; crop proof requires readable raster input. [VERIFIED: local file audit] [VERIFIED: satellite_edge_node/payloads.py]
-   - What's unclear: Whether a license-checked real image is already available outside the scanned files. [ASSUMED]
-   - Recommendation: Use or add one small disclosed PNG fixture with sidecar bbox for Phase 1 if no real licensed image is ready. [ASSUMED]
+   - Resolution: Use a small disclosed readable PNG fixture with sidecar bbox for Phase 1 if no license-checked real image is available at execution time.
+   - Planner decision: Plan 01-03 requires a readable raster fixture and explicitly rejects unreadable `.tile` blobs for the positive crop proof.
 
 3. **Should payload JSON duplicate byte accounting from telemetry?**
    - What we know: DEMO-03 asks for payload JSON containing detector metadata, triage action, byte accounting, and crop/full-downlink decision; current byte accounting is primarily telemetry-side. [VERIFIED: .planning/REQUIREMENTS.md] [VERIFIED: satellite_edge_node/payloads.py]
-   - What's unclear: Whether "payload JSON" can mean payload plus telemetry record in judge workflow. [ASSUMED]
-   - Recommendation: Add minimal byte/action fields to alert payload JSON or generate a small run summary JSON so DEMO-03 is satisfied without requiring source-code knowledge. [ASSUMED]
+   - Resolution: Add minimal top-level action plus payload-side byte accounting fields so a judge can inspect one payload JSON without cross-referencing source code.
+   - Planner decision: Plan 01-03 owns payload JSON inspection fields and telemetry consistency tests.
 
 ## Environment Availability
 
