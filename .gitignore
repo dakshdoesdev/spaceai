@@ -12,3 +12,4 @@ data/smoke/**
 !data/metadata/.gitkeep
 !data/smoke/.gitkeep
 
+*.pt
