@@ -178,7 +178,7 @@ def render_replay_status(replay_events: list[dict], all_events: list[dict]) -> N
 def render_technical_honesty() -> None:
     st.subheader("Technical Honesty")
     rows = [
-        ("Real architecture", "satellite_edge_node writes queue payloads and telemetry; ground station reads only downlinked artifacts"),
+        ("Real architecture", "edge pass writes queue payloads and telemetry; ground station reads only downlinked artifacts"),
         ("Simulated parts", "local orbital pass, placeholder raw tiles, baseline detector unless YOLO metadata is present"),
         ("Missing final integrations", "real Sentinel tiles, trained/validated YOLO weights, crop generation, threshold calibration"),
         ("Liquid LFM", "optional crop-level structured reasoning; LFM DISABLED, LIQUID MOCK, and LIQUID LFM REAL are shown from payload metadata"),

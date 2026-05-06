@@ -184,8 +184,12 @@ def resolve_crop_evidence(
     events: list[dict[str, Any]] | None = None,
     queue_dir: Path = TRANSMISSION_QUEUE_DIR,
 ) -> list[CropEvidence]:
+    events_by_tile = {event.get("tile_id"): event for event in events or []}
     by_tile = {payload.get("tile_id"): payload for payload in payloads}
-    review_items = list(safe_review_payloads(payloads))
+    review_items = [
+        _with_telemetry_crop_reference(payload, events_by_tile.get(payload.get("tile_id")))
+        for payload in safe_review_payloads(payloads)
+    ]
     for event in events or []:
         if _decision(event) not in REVIEW_DECISIONS:
             continue
@@ -383,6 +387,20 @@ def _crop_reference(item: dict[str, Any]) -> tuple[str | None, str | None]:
         if value:
             return field, str(value)
     return None, None
+
+
+def _with_telemetry_crop_reference(
+    payload: dict[str, Any],
+    event: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if event is None or _crop_reference(payload)[1] is not None:
+        return payload
+    merged = dict(payload)
+    for field in CROP_REFERENCE_FIELDS:
+        if event.get(field):
+            merged[field] = event[field]
+            break
+    return merged
 
 
 def _safe_crop_path(value: str, queue_dir: Path) -> Path | None:

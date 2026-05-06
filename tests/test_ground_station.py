@@ -243,6 +243,72 @@ class GroundStationTests(unittest.TestCase):
         self.assertFalse(evidence[0].available)
         self.assertEqual(evidence[0].message, "no real crop available")
 
+    def test_crop_evidence_accepts_queue_crop_ref(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            queue = Path(temp_dir) / "transmission_queue"
+            crops = queue / "crops"
+            crops.mkdir(parents=True)
+            crop_path = crops / "kiln_crop.png"
+            crop_path.write_bytes(b"png bytes")
+
+            evidence = resolve_crop_evidence(
+                [{"tile_id": "tile-a", "triage_decision": "CROP_OR_REVIEW", "crop_ref": str(crop_path)}],
+                [],
+                queue_dir=queue,
+            )
+
+        self.assertTrue(evidence[0].available)
+        self.assertEqual(evidence[0].tile_id, "tile-a")
+        self.assertEqual(evidence[0].source_field, "crop_ref")
+
+    def test_crop_evidence_accepts_telemetry_crop_path_for_review_payload(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            queue = Path(temp_dir) / "transmission_queue"
+            crops = queue / "crops"
+            crops.mkdir(parents=True)
+            crop_path = crops / "kiln_crop.png"
+            crop_path.write_bytes(b"png bytes")
+
+            evidence = resolve_crop_evidence(
+                [{"tile_id": "tile-a", "triage_decision": "CROP_OR_REVIEW"}],
+                [{"tile_id": "tile-a", "crop_path": str(crop_path)}],
+                queue_dir=queue,
+            )
+
+        self.assertTrue(evidence[0].available)
+        self.assertEqual(evidence[0].source_field, "crop_path")
+
+    def test_crop_evidence_rejects_raw_final_roboflow_and_tile_paths(self):
+        forbidden_paths = [
+            "data/raw_tiles/source.png",
+            "data/final_demo_tiles/source.png",
+            "datasets/roboflow/source.png",
+            "transmission_queue/crops/placeholder.tile",
+        ]
+        for candidate in forbidden_paths:
+            with self.subTest(candidate=candidate):
+                evidence = resolve_crop_evidence(
+                    [{"tile_id": "tile-a", "triage_decision": "CROP_OR_REVIEW", "crop_ref": candidate}],
+                    [],
+                )
+
+                self.assertFalse(evidence[0].available)
+                self.assertIsNone(evidence[0].path)
+                self.assertEqual(evidence[0].message, "no real crop available")
+
+    def test_crop_evidence_rejects_missing_crop_file(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            queue = Path(temp_dir) / "transmission_queue"
+            queue.mkdir()
+            evidence = resolve_crop_evidence(
+                [{"tile_id": "tile-a", "triage_decision": "CROP_OR_REVIEW", "payload_uri": "crops/missing.png"}],
+                [],
+                queue_dir=queue,
+            )
+
+        self.assertFalse(evidence[0].available)
+        self.assertEqual(evidence[0].message, "no real crop available")
+
 
 if __name__ == "__main__":
     unittest.main()
