@@ -2,9 +2,10 @@
 
 ## Demo Readiness
 
-- [ ] Run the orbital-pass simulation from local placeholder or real local tiles.
+- [ ] Run strict YOLO from readable local image tiles with `--require-crops`.
 - [ ] Confirm `transmission_queue/telemetry.jsonl` exists.
-- [ ] Confirm `transmission_queue/*.json` contains downlinked payloads.
+- [ ] Confirm `transmission_queue/*.json` contains alert payloads only.
+- [ ] Confirm dropped tiles appear in telemetry, not as fake downlinked JSON.
 - [ ] Run `streamlit run app.py`.
 - [ ] Confirm the dashboard shows tiles processed, raw bytes, downlinked bytes, saved percentage, ignored tiles, JSON alerts, and review alerts.
 - [ ] Confirm the dashboard displays `SAMPLE DATA` or `BASELINE SIMULATION` when appropriate.
@@ -12,17 +13,18 @@
 
 ## Technical Honesty
 
-- [ ] State that the current detector is baseline/placeholder unless YOLO metadata is present.
+- [ ] State that strict YOLO is real only when model readiness and telemetry both prove it.
 - [ ] State that raw demo tiles are placeholders unless replaced with real local imagery.
 - [ ] State that the edge node is a local simulation, not satellite hardware.
-- [ ] State that Liquid/LFM integration is future work unless implemented.
+- [ ] State that Liquid/LFM fine-tuning is not implemented; mock reasoning is simulated.
+- [ ] Do not claim demo fixtures are Haryana/Sentinel imagery without provenance.
 - [ ] Avoid claiming validated model accuracy without evaluation files.
 
 ## Validation
 
 - [ ] Run `python -m unittest discover -s tests -p 'test*.py'`.
 - [ ] Run `python scripts/validate_manifest.py datasets/kilnwatch/manifests/sample_demo_manifest.jsonl`.
-- [ ] Run `python scripts/check_model_ready.py` and record whether real YOLO is available.
+- [ ] Run `python scripts/check_model_ready.py --json` and record whether real YOLO is available.
 - [ ] Run `python scripts/evaluate_detector.py --manifest datasets/kilnwatch/manifests/baseline_sample_eval_manifest.jsonl --telemetry transmission_queue/telemetry.jsonl` for sample evaluation.
 - [ ] Capture dashboard screenshot or video segment showing bandwidth saved.
 

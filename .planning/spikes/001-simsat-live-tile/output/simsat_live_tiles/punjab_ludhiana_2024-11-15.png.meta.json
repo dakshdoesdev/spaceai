@@ -1,0 +1,14 @@
+{
+  "tile_id": "punjab_ludhiana_2024-11-15",
+  "source": "DPhi-Space SimSat",
+  "endpoint": "/data/image/sentinel",
+  "lat": 30.91,
+  "lon": 75.85,
+  "timestamp_requested": "2024-11-15T10:00:00Z",
+  "size_km": 5.0,
+  "spectral_bands": "red,green,blue",
+  "fetched_at": "2026-05-08T20:34:08Z",
+  "size_bytes": 355983,
+  "is_real_imagery": true,
+  "imagery_provenance": "Sentinel-2 via DPhi SimSat"
+}

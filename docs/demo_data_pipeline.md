@@ -11,9 +11,9 @@ Use this when you have real tile bytes from a local, license-compatible source s
 ```bash
 python scripts/fetch_demo_tiles.py \
   --mode simsat \
-  --coordinates-csv datasets/kilnwatch/coordinates/panipat_demo_coordinates.csv \
+  --coordinates-csv datasets/kilnwatch/coordinates/haryana_demo_coordinates.csv \
   --tile-dir data/raw_tiles \
-  --manifest datasets/kilnwatch/manifests/panipat_demo_manifest.jsonl
+  --manifest datasets/kilnwatch/manifests/haryana_demo_manifest.jsonl
 ```
 
 SimSat must be running locally, defaulting to `http://localhost:9005`. The script does not use Mapbox, Google Maps Static API, Sentinel Hub, or paid keys. If SimSat is not reachable, it exits with a message telling you to start SimSat or rerun in placeholder mode.
@@ -27,17 +27,17 @@ Use this when you manually downloaded real, license-compatible image tiles and n
 ```bash
 python scripts/fetch_demo_tiles.py \
   --mode local-import \
-  --coordinates-csv datasets/kilnwatch/coordinates/panipat_demo_coordinates.csv \
+  --coordinates-csv datasets/kilnwatch/coordinates/haryana_demo_coordinates.csv \
   --local-image-dir data/manual_tiles \
   --tile-dir data/raw_tiles \
-  --manifest datasets/kilnwatch/manifests/panipat_demo_manifest.jsonl
+  --manifest datasets/kilnwatch/manifests/haryana_demo_manifest.jsonl
 ```
 
 Expected local files:
 
 ```text
-data/manual_tiles/panipat_positive_replace_001.png
-data/manual_tiles/panipat_refinery_negative_001.jpg
+data/manual_tiles/haryana_positive_replace_001.png
+data/manual_tiles/haryana_industrial_negative_001.jpg
 ```
 
 Supported extensions: `.png`, `.jpg`, `.jpeg`, `.tif`, `.tiff`. The script validates readability before writing the manifest.
@@ -49,9 +49,9 @@ Use this when real imagery is not ready yet:
 ```bash
 python scripts/fetch_demo_tiles.py \
   --mode placeholder \
-  --coordinates-csv datasets/kilnwatch/coordinates/panipat_demo_coordinates.csv \
+  --coordinates-csv datasets/kilnwatch/coordinates/haryana_demo_coordinates.csv \
   --tile-dir data/raw_tiles \
-  --manifest datasets/kilnwatch/manifests/panipat_demo_manifest.jsonl
+  --manifest datasets/kilnwatch/manifests/haryana_demo_manifest.jsonl
 ```
 
 Placeholder mode writes tiny `.tile` files and `.meta.json` sidecars. These are architecture fixtures only and are marked `sample_demo_not_ground_truth`, `data_mode=placeholder`, `is_placeholder=true`, and `is_real_imagery=false` in the manifest.
@@ -71,19 +71,19 @@ Allowed `expected_label` values:
 
 Template files:
 
-- `datasets/kilnwatch/coordinates/panipat_demo_coordinates.csv`
+- `datasets/kilnwatch/coordinates/haryana_demo_coordinates.csv`
 - `datasets/kilnwatch/coordinates/apad_coordinates_template.csv`
-- `datasets/kilnwatch/coordinates/negative_controls_panipat_template.csv`
+- `datasets/kilnwatch/coordinates/negative_controls_haryana_template.csv`
 
 If you run the script with a missing CSV path, it writes a small sample CSV at that path and exits so you can edit it deliberately.
 
-## APAD / Panipat Path
+## APAD / Haryana Path
 
 If you have a local APAD-style coordinate CSV, convert or rename columns into the KilnWatch CSV shape:
 
 ```csv
 tile_id,lat,lon,region_name,expected_label,source,notes
-apad_panipat_0001,29.390900,76.963500,Panipat Haryana,positive,apad_local_csv,"Local APAD/manual coordinate; keep license/source notes."
+apad_haryana_0001,29.390900,76.963500,"Haryana, India",positive,apad_local_csv,"Local APAD/manual coordinate; keep license/source notes."
 ```
 
 Do not assume an APAD GitHub URL or notebook works. Do not run notebooks that depend on Google Static Maps or Google Earth Engine for this MVP. Use local CSV rows and a local imagery source.
@@ -92,7 +92,7 @@ Do not assume an APAD GitHub URL or notebook works. Do not run notebooks that de
 
 Include hard negatives in every demo/eval batch:
 
-- Panipat Refinery / industrial false positive.
+- industrial control / industrial false positive.
 - Agricultural fields.
 - Greenhouses/polyhouses.
 - Warehouses, construction, and bare soil.
@@ -104,18 +104,18 @@ Include hard negatives in every demo/eval batch:
 - Decent demo: 20 positive + 10 negative.
 - Strong demo: 50 positive + 25 negative.
 
-For a hackathon demo, prioritize geographic diversity around Panipat/Haryana/NCR and hard negatives that look kiln-like.
+For a hackathon demo, prioritize geographic diversity around Haryana, India and hard negatives that look kiln-like.
 
 ## Validate
 
 ```bash
-python scripts/validate_manifest.py datasets/kilnwatch/manifests/panipat_demo_manifest.jsonl
+python scripts/validate_manifest.py datasets/kilnwatch/manifests/haryana_demo_manifest.jsonl
 ```
 
 For final demo claims, require image readability:
 
 ```bash
-python scripts/validate_manifest.py --check-images datasets/kilnwatch/manifests/panipat_demo_manifest.jsonl
+python scripts/validate_manifest.py --check-images datasets/kilnwatch/manifests/haryana_demo_manifest.jsonl
 ```
 
 This command is expected to fail for placeholder `.tile` manifests. It should pass only after SimSat or local-import mode has produced real readable images.
@@ -141,7 +141,8 @@ python -m satellite_edge_node.orbital_pass \
   --transmission-queue transmission_queue \
   --detector yolo \
   --model-path models/brick_kiln_yolo.pt \
-  --confidence-threshold 0.05 \
+  --confidence-threshold 0.25 \
+  --require-crops \
   --reset-queue
 ```
 
@@ -149,17 +150,16 @@ Expected evidence from the current final queue:
 
 | Metric | Value |
 | --- | ---: |
-| Test images processed | 9 |
+| Test images processed | 14 |
 | Detector mode | YOLO |
 | Simulated? | false |
-| Raw bytes processed | 711,843 |
-| Transmitted bytes | 15,983 |
-| Compression ratio | 44.54x |
-| Bandwidth saved | 695,860 bytes |
+| Raw bytes processed | 1,108,441 |
+| Transmitted bytes | 5,420 |
+| Compression ratio | 204.51x |
+| Bandwidth saved | 1,103,021 bytes |
 | Detections | 5 |
 | Crops generated | 5 |
-| Image-level false positives | 0 |
-| Image-level false negatives | 4 |
+| Dropped tiles | 9 telemetry-only records |
 
 All non-null `crop_ref` values in `transmission_queue/*.json` must point to non-empty files under `transmission_queue/crops/`.
 

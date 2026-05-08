@@ -13,3 +13,22 @@ data/smoke/**
 !data/smoke/.gitkeep
 
 *.pt
+*.gguf
+runs/
+datasets/roboflow/
+datasets/SentinelKilnDB/
+datasets/SENTINELKILNDB_NeurIPS_2025/
+Brick Kiln Detection.v1-dataset_aug.yolov8/
+Brick Kiln Detection.v1-dataset_aug.yolov8.zip
+
+# Local-only / scratch — large or environment-specific
+tmp_brick_kiln/
+models/liquid/
+transmission_queue.backup_*/
+.planning/spikes/004-vrsbench-eval-sample/
+
+# IDE / OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

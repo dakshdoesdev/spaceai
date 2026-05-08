@@ -16,8 +16,8 @@ Each JSONL row is one tile or coordinate-level record:
 
 ```json
 {
-  "tile_id": "sample_demo_panipat_001",
-  "image_path": "datasets/kilnwatch/images/demo/sample_demo_panipat_001.png",
+  "tile_id": "sample_demo_haryana_001",
+  "image_path": "datasets/kilnwatch/images/demo/sample_demo_haryana_001.png",
   "lat": 29.3909,
   "lon": 76.9635,
   "source": "sample_demo_not_ground_truth",

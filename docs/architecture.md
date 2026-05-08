@@ -7,6 +7,7 @@ KilnWatch separates satellite-side processing from ground-station display.
 The ground station must not inspect raw tile folders. It should only read:
 
 - `transmission_queue/*.json`
+- `transmission_queue/crops/*`
 - `transmission_queue/telemetry.jsonl`
 - `telemetry_logs/*.jsonl` as sample or external telemetry logs
 
@@ -19,12 +20,14 @@ Raw local tiles
         v
 Satellite edge node
   satellite_edge_node/orbital_pass.py
+  satellite_edge_node/yolo_detector.py
   satellite_edge_node/baseline_detector.py
   satellite_edge_node/payloads.py
         |
         v
 Downlinked artifacts
-  transmission_queue/*.json
+  transmission_queue/*.json for alerts
+  transmission_queue/crops/*.png for alert evidence
   transmission_queue/telemetry.jsonl
         |
         v
@@ -39,13 +42,16 @@ The edge node simulates onboard processing:
 
 - discovers local tile files,
 - runs the detector path,
-- builds compact payloads,
-- writes downlink telemetry,
+- builds compact alert payloads,
+- writes downlink telemetry for every processed tile,
+- writes dropped tiles as telemetry-only records by default,
 - avoids transmitting raw tiles when risk is not high.
 
-Current detector status: baseline placeholder.
+Current detector status is explicit per run:
 
-Planned detector status: YOLO-style brick-kiln detector with explicit detector metadata.
+- strict YOLO when `models/brick_kiln_yolo.pt` loads with a brick-kiln class,
+- baseline simulation when `--detector baseline` is used,
+- simulated fallback only when `--allow-baseline-fallback` is used.
 
 The expected real model path is:
 
@@ -53,7 +59,7 @@ The expected real model path is:
 models/brick_kiln_yolo.pt
 ```
 
-Use `python scripts/check_model_ready.py` before claiming real detector availability.
+Use `python scripts/check_model_ready.py --json` before claiming real detector availability.
 
 ## Ground Station
 

@@ -95,15 +95,68 @@ streamlit run app.py
 
 Honest expectation: the orbital pass takes ~2–4 minutes the first time it loads `LiquidAI/LFM2.5-VL-450M` (~900 MB download then CPU inference). Subsequent runs reuse the cache.
 
+### Optional: run on real DPhi SimSat Sentinel-2 imagery
+
+```bash
+# 1. Clone and start the official DPhi simulator
+git clone https://github.com/DPhi-Space/SimSat ~/Work/tries/SimSat
+cd ~/Work/tries/SimSat
+MAPBOX_ACCESS_TOKEN=dummy_for_local_testing docker compose up -d --build
+
+# 2. Pull a few IGP Sentinel-2 tiles via the historical endpoint
+cd /path/to/SpaceAI
+python - <<'PY'
+import requests, json, time
+from pathlib import Path
+out = Path("data/simsat_live_tiles"); out.mkdir(parents=True, exist_ok=True)
+for name, lat, lon in [
+    ("haryana_panipat", 29.39, 76.97),
+    ("haryana_kurukshetra", 29.97, 76.88),
+    ("up_aligarh", 27.88, 78.07),
+    ("punjab_ludhiana", 30.91, 75.85),
+    ("bangladesh_dhaka_n", 23.95, 90.40),
+]:
+    r = requests.get("http://localhost:9005/data/image/sentinel",
+                     params={"lat": lat, "lon": lon,
+                             "timestamp": "2024-11-15T10:00:00Z",
+                             "size_km": 5.0, "return_type": "png"},
+                     timeout=30)
+    r.raise_for_status()
+    p = out / f"{name}_2024-11-15.png"; p.write_bytes(r.content)
+    (out / f"{p.stem}.png.meta.json").write_text(json.dumps({
+        "tile_id": p.stem, "source": "DPhi-Space SimSat",
+        "endpoint": "/data/image/sentinel",
+        "lat": lat, "lon": lon, "is_real_imagery": True,
+        "imagery_provenance": "Sentinel-2 via DPhi SimSat",
+    }, indent=2))
+    print(f"{name}: {len(r.content)} bytes")
+PY
+
+# 3. Run the orbital pass on the SimSat tiles into a separate queue
+python -m satellite_edge_node.orbital_pass \
+  --raw-tiles data/simsat_live_tiles \
+  --transmission-queue transmission_queue_simsat \
+  --detector yolo --reasoner liquid-local \
+  --require-crops --reset-queue
+```
+
+Expected outcome: 5 tiles processed, **0 detections, 100% bandwidth saved**. That's the honest finding — the architecture works on real DPhi imagery; current YOLO weights need Sentinel-domain fine-tuning to fire on 10 m/pixel data. See spike `.planning/spikes/001-simsat-live-tile/` for the full integration log.
+
 The dashboard opens directly at the triage view: bandwidth saved as the hero metric, then the alerts the satellite chose to downlink — each card shows the crop, detector confidence, and Liquid's reasoning. A diagnostics expander at the bottom exposes raw payload/telemetry JSON for judge inspection.
 
 ## Imagery provenance — honest disclosure
 
-The included `data/final_demo_tiles/` are open-source brick-kiln imagery (Roboflow, Indo-Gangetic Plain morphology). They are **real overhead images of brick kilns** and prove the satellite-edge pipeline end-to-end on the kind of structures the system is designed to detect.
+KilnWatch supports **two imagery sources** end-to-end:
 
-They are **not** Sentinel-2 or DPhi SimSat live tiles. We do not claim Haryana ground-truth provenance for these specific images.
+### A) Roboflow optical fixtures — `data/final_demo_tiles/`
+Open-source brick-kiln imagery (Roboflow, Indo-Gangetic Plain morphology). Real overhead images of brick kilns at ~0.3-1 m/pixel that prove the satellite-edge pipeline end-to-end on the kind of structures the system is designed to detect. The detector + Liquid layer fire here: **5/5 alerts with real `vlm_reasoning`, ~99% bandwidth saved, ~100× compression**. Used by the primary demo.
 
-The production path is to swap the tile source for the DPhi SimSat `/data/image/sentinel` endpoint and fine-tune YOLO + Liquid on Sentinel-domain kiln labels. The triage architecture, queue boundary, and ground-station accounting do not change.
+These are **not** Sentinel-2 or DPhi SimSat live tiles. We do not claim Haryana ground-truth provenance for these specific images.
+
+### B) DPhi SimSat live Sentinel-2 — `data/simsat_live_tiles/`
+Real Sentinel-2 RGB tiles served by the official `DPhi-Space/SimSat` simulator running locally (`docker compose up`). Pipeline ingests these unchanged and emits proper telemetry, alert payloads, crops, and byte accounting. Five Indo-Gangetic Plain coordinates pulled (Panipat, Kurukshetra, Aligarh, Ludhiana, Dhaka outskirts) at `2024-11-15T10:00:00Z`. **Pipeline drops all 5 with `kiln_detected=false`, 100% bandwidth saved, 0 false positives.** Honest finding: current YOLO weights — trained on optical morphology at ~0.3-1 m/pixel — do not fire on Sentinel-2 RGB at ~10 m/pixel. Sentinel-domain fine-tuning is the documented next step (cookbook recipe: `Liquid4All/cookbook/examples/satellite-vlm` via `leap-finetune` + Modal H100). The triage architecture, queue boundary, and ground-station accounting do not change across imagery sources.
+
+See `.planning/spikes/001-simsat-live-tile/README.md` for the full SimSat integration log and reproduction commands.
 
 ## Detector modes
 

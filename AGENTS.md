@@ -27,7 +27,7 @@ The current codebase is a strong system architecture MVP: satellite edge process
 ## Languages
 - Python >=3.11 - Required by `pyproject.toml`; used across `app.py`, `satellite_edge_node/`, `kilnwatch/`, `ground_station_ui/`, `scripts/`, and `tests/`.
 - Markdown - Project documentation in `README.md`, `docs/architecture.md`, `docs/model_training.md`, `docs/demo_data_pipeline.md`, and dataset documentation under `datasets/kilnwatch/docs/`.
-- JSON / JSONL - Local telemetry, manifests, labels, sidecars, and config in `transmission_queue/telemetry.jsonl`, `datasets/kilnwatch/manifests/*.jsonl`, `datasets/kilnwatch/labels/*.jsonl`, `data/raw_tiles/*.meta.json`, and `config/regions/panipat_haryana.json`.
+- JSON / JSONL - Local telemetry, manifests, labels, sidecars, and config in `transmission_queue/telemetry.jsonl`, `datasets/kilnwatch/manifests/*.jsonl`, `datasets/kilnwatch/labels/*.jsonl`, `data/raw_tiles/*.meta.json`, and `config/regions/haryana_india.json`.
 - CSV - Coordinate templates and demo inputs in `datasets/kilnwatch/coordinates/*.csv`.
 ## Runtime
 - CPython >=3.11.
@@ -164,7 +164,7 @@ The current codebase is a strong system architecture MVP: satellite edge process
 - Location: `kilnwatch/ingestion/`
 - Contains: `SimSatClient`, `SimSatResponse`, `Region`, `TileRecord`, CLI entry point.
 - Depends on: Standard-library `urllib`, JSON, filesystem writes under `data/`.
-- Used by: `scripts/smoke_fetch_panipat.py`, `scripts/fetch_demo_tiles.py`, package script `kilnwatch-fetch-panipat`.
+- Used by: `scripts/smoke_fetch_haryana.py`, `scripts/fetch_demo_tiles.py`, package script `kilnwatch-fetch-haryana`.
 - Purpose: Validate and convert local datasets into the KilnWatch manifest schema.
 - Location: `kilnwatch/datasets/`
 - Contains: Manifest validator, image validator, adapter base class, APAD converter, reference stubs for SentinelKilnDB, KDD24, and SustainBench/GEO-Bench.
@@ -187,7 +187,7 @@ The current codebase is a strong system architecture MVP: satellite edge process
 - Used by: `streamlit run app.py`, `streamlit run ground_station_ui/app.py`, ground-station tests.
 - Purpose: Check model readiness, evaluate telemetry against manifests, validate datasets, fetch demo tiles.
 - Location: `scripts/`
-- Contains: `check_model_ready.py`, `evaluate_detector.py`, `fetch_demo_tiles.py`, `validate_manifest.py`, `smoke_fetch_panipat.py`.
+- Contains: `check_model_ready.py`, `evaluate_detector.py`, `fetch_demo_tiles.py`, `validate_manifest.py`, `smoke_fetch_haryana.py`.
 - Depends on: Package modules and repo-local data paths.
 - Used by: README workflows and tests under `tests/`.
 ## Data Flow
@@ -235,8 +235,8 @@ The current codebase is a strong system architecture MVP: satellite edge process
 - Triggers: `python -m satellite_edge_node.orbital_pass`, `kilnwatch-orbital-pass`
 - Responsibilities: Run detector over raw tiles, write downlinked payloads, append telemetry, print byte-savings summary.
 - Location: `kilnwatch/ingestion/cli.py`
-- Triggers: `python -m kilnwatch.ingestion.cli`, `kilnwatch-fetch-panipat`, `scripts/smoke_fetch_panipat.py`
-- Responsibilities: Fetch a Panipat Sentinel-style tile from local SimSat or write smoke reports when unavailable.
+- Triggers: `python -m kilnwatch.ingestion.cli`, `kilnwatch-fetch-haryana`, `scripts/smoke_fetch_haryana.py`
+- Responsibilities: Fetch a Haryana, India Sentinel-style tile from local SimSat or write smoke reports when unavailable.
 - Location: `scripts/validate_manifest.py`
 - Triggers: `python scripts/validate_manifest.py datasets/kilnwatch/manifests/sample_demo_manifest.jsonl`
 - Responsibilities: Validate JSONL manifest schema and optionally validate image readability.

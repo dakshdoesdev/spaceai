@@ -2,7 +2,7 @@
 
 ## Status
 
-KilnWatch has a YOLO integration path, but real detection is unavailable until this file exists:
+KilnWatch has a strict YOLO integration path. Real detection is unavailable until this file exists and loads with a brick-kiln class:
 
 ```text
 models/brick_kiln_yolo.pt
@@ -14,7 +14,7 @@ Do not commit model weights unless the license and file size are acceptable. Kee
 
 Use only datasets you are allowed to use:
 
-- Manually prepared Panipat/Haryana/NCR tiles with your own labels.
+- Manually prepared Haryana, India tiles with your own labels.
 - License-compatible public brick-kiln datasets.
 - SentinelKilnDB or APAD-style resources only after checking license and redistribution constraints.
 
@@ -86,10 +86,12 @@ Strict mode fails if weights or `ultralytics` are missing:
 
 ```bash
 python -m satellite_edge_node.orbital_pass \
-  --raw-tiles data/raw_tiles \
+  --raw-tiles data/final_demo_tiles \
   --transmission-queue transmission_queue \
   --detector yolo \
-  --model-path models/brick_kiln_yolo.pt
+  --model-path models/brick_kiln_yolo.pt \
+  --require-crops \
+  --reset-queue
 ```
 
 Fallback mode is acceptable for demo plumbing, but it is not real detection:
@@ -119,7 +121,7 @@ Real YOLO evaluation after strict mode:
 
 ```bash
 python scripts/evaluate_detector.py \
-  --manifest datasets/kilnwatch/manifests/panipat_demo_manifest.jsonl \
+  --manifest datasets/kilnwatch/manifests/haryana_demo_manifest.jsonl \
   --telemetry transmission_queue/telemetry.jsonl \
   --output docs/latest_evaluation.json
 ```
@@ -130,8 +132,10 @@ Real proof requires all of these:
 
 - `models/brick_kiln_yolo.pt` exists locally.
 - `ultralytics` is installed.
+- `python scripts/check_model_ready.py --json` reports `kiln_class_available=true`.
 - orbital pass was run with `--detector yolo` and no `--allow-baseline-fallback`.
 - telemetry contains YOLO detector metadata, `detector_is_real=true`, and no fallback reason.
+- every alert with a crop reference points to a non-empty file under `transmission_queue/crops/`.
 - manifest rows are real labeled examples, not `sample_demo_not_ground_truth`.
 - evaluation reports detection metrics and bandwidth metrics on those rows.
 
