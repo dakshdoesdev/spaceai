@@ -10,6 +10,13 @@ from .baseline_detector import DetectionResult
 
 DETECTOR_VERSION = "yolo_ultralytics:v0.1"
 DEFAULT_MODEL_PATH = Path("models/brick_kiln_yolo.pt")
+KILN_CLASS_NAMES = {
+    "brick kiln",
+    "brick-kiln",
+    "brick_kiln",
+    "brickkiln",
+    "kiln",
+}
 
 
 class YoloDetectorError(RuntimeError):
@@ -39,6 +46,12 @@ class YoloDetector:
             self.model = YOLO(str(self.model_path))
         except Exception as exc:  # Weight loading can fail on corrupt or incompatible local files.
             raise YoloModelUnavailable(f"YOLO model could not be loaded from {self.model_path}: {exc}") from exc
+        self.class_names = model_class_names(self.model)
+        if not has_kiln_class(self.class_names):
+            names = ", ".join(self.class_names) or "none"
+            raise YoloModelUnavailable(
+                f"YOLO model at {self.model_path} does not expose a brick-kiln class; classes={names}"
+            )
 
     def detect_tile(self, tile_path: Path) -> DetectionResult:
         try:
@@ -123,15 +136,49 @@ def _extract_detections(results: Any, confidence_threshold: float) -> list[dict[
             if confidence < confidence_threshold:
                 continue
             class_id = int(_safe_float(_value_at(class_values, index), default=0.0))
+            class_name = _class_name_for_id(names, class_id)
+            if not is_kiln_class_name(class_name):
+                continue
             detections.append(
                 {
                     "bbox": [float(value) for value in bbox[:4]],
                     "confidence": confidence,
                     "class_id": class_id,
-                    "class_name": names.get(class_id, str(class_id)) if isinstance(names, dict) else str(class_id),
+                    "class_name": class_name,
                 }
             )
     return detections
+
+
+def model_class_names(model: Any) -> list[str]:
+    names = getattr(model, "names", {}) or {}
+    if isinstance(names, dict):
+        return [str(value) for _, value in sorted(names.items(), key=lambda item: str(item[0]))]
+    if isinstance(names, (list, tuple)):
+        return [str(value) for value in names]
+    return []
+
+
+def has_kiln_class(names: list[str]) -> bool:
+    return any(is_kiln_class_name(name) for name in names)
+
+
+def is_kiln_class_name(name: Any) -> bool:
+    normalized = str(name or "").strip().lower().replace("_", " ")
+    normalized = " ".join(normalized.replace("-", " ").split())
+    return normalized in {_normalize_class_name(value) for value in KILN_CLASS_NAMES}
+
+
+def _normalize_class_name(name: str) -> str:
+    return " ".join(name.lower().replace("_", " ").replace("-", " ").split())
+
+
+def _class_name_for_id(names: Any, class_id: int) -> str:
+    if isinstance(names, dict):
+        return str(names.get(class_id, names.get(str(class_id), "")))
+    if isinstance(names, (list, tuple)) and 0 <= class_id < len(names):
+        return str(names[class_id])
+    return ""
 
 
 def _to_python_list(value: Any) -> list:

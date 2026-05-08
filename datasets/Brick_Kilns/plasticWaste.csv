@@ -1,0 +1,134 @@
+id,country,name,area,Latitude,Longitude
+1,BANGLADESH,"Dinajpur, Dinajpur district, Rangpur Division",677 m2,25.63361111,88.65861111
+2,BANGLADESH,"Jessore - Narail Hwy, Fatehpur, Jashore","1,020 m2",23.16277778,89.24194444
+3,BANGLADESH,"Jirabo, Savar, Savar Subdistrict",666 m2,23.92277778,90.31833333
+4,BANGLADESH,"Jirabo, Savar, Savar Subdistrict","1,001 m2",23.90777778,90.3125
+5,BANGLADESH,"Jirabo, Savar, Savar Subdistrict",89 m2,23.91638889,90.30388889
+6,BANGLADESH,"Baipail, Savar, Savar Subdistrict",7 m2,23.92861111,90.27055556
+7,BANGLADESH,"N R CNG Filling Station ?? ?? ?????? ????? ??????, Dhaka - Aricha Highway, Aminbazar","62,430 m2",23.79777778,90.30111111
+8,BANGLADESH,"Keraniganj Subdistrict, Dhaka District, Dhaka Division","12,263 m2",23.77305556,90.24
+9,BANGLADESH,"Nabinagar - Chandra Highway, Savar Subdistrict, Gazipur District","1,386 m2",23.98111111,90.26111111
+10,BANGLADESH,"Nabinagar - Chandra Highway, Baipail, Sreepur",714 m2,23.97166667,90.265
+11,BANGLADESH,"Faridpur, Faridpur Sadar, Faridpur District","2,227 m2",23.62277778,89.84527778
+12,BANGLADESH,"Green Model Town, Dhaka, Dhaka Metropolitan","21,289 m2",23.72027778,90.45194444
+13,BANGLADESH,"N404, Tangail, Tangail District","1,334 m2",24.27944444,89.91861111
+14,INDIA,"Sampatchak, Patna District, Bihar","3,272 m2",25.56611111,85.17805556
+15,INDIA,"Gorakhpur, Uttar Pradesh, 273001",862 m2,26.72722222,83.34361111
+16,INDIA,"Kasya, Kushinagar, Uttar Pradesh",843 m2,26.75361111,83.95305556
+17,INDIA,"Barharganj, NH730, Padrauna","1,455 m2",26.92388889,83.92055556
+18,INDIA,"Sadar, Varanasi, Uttar Pradesh",754 m2,25.21416667,82.92
+19,INDIA,"Azamgarh, Uttar Pradesh, 276001",899 m2,26.02555556,83.12722222
+20,INDIA,"Kishanganj, Kishanganj district, Bihar",830 m2,26.11527778,87.955
+21,INDIA,"Mansahi, Katihar, Bihar",294 m2,25.50861111,87.57722222
+22,INDIA,"Bahraich, Uttar Pradesh, 271801","1,900 m2",27.58888889,81.60083333
+23,INDIA,"Dhaurahara, Kheri, Uttar Pradesh","1,033 m2",27.88805556,81.11972222
+24,INDIA,"Diamond Harbour Road, Diamond Harbour, Diamond Harbour - I",512 m2,22.17138889,88.22861111
+25,INDIA,"Falta Special Economic Zone, Diamond Harbour - II, South 24 Parganas",923 m2,22.28111111,88.10083333
+26,INDIA,"Digha Contai Road, Contai, Contai-I","5,135 m2",21.765,87.73027778
+27,INDIA,"Midnapore, Paschim Medinipur, West Bengal",176 m2,22.42416667,87.2925
+28,INDIA,"Midnapore, Paschim Medinipur, West Bengal","5,944 m2",22.42222222,87.34083333
+29,INDIA,"Kharagpur, Kharagpur-I, Paschim Medinipur","1,042 m2",22.3325,87.29861111
+30,INDIA,"SH14, Dubrajpur, Birbhum",639 m2,23.79222222,87.39722222
+31,INDIA,"Krishnanagar City, Krishnanagar, Krishnagar-I","2,187 m2",23.405,88.51138889
+32,INDIA,"Badu, Barasat - II, North 24 Parganas","4,450 m2",22.69138889,88.50111111
+33,INDIA,"Nilgunj Road, Kamarhati, Barrackpur - II","1,769 m2",22.67861111,88.38
+34,INDIA,"Sodepur, Panihati, Barrackpur - II","1,484 m2",22.69166667,88.38583333
+35,INDIA,"Barasat, Barasat - I, North 24 Parganas","3,030 m2",22.70555556,88.51861111
+36,INDIA,"Halisahar, Barrackpur - I, North 24 Parganas",957 m2,22.92888889,88.42055556
+37,INDIA,"Kanchrapara, Barrackpur - I, North 24 Parganas","1,254 m2",22.94916667,88.43277778
+38,INDIA,"Kalyani-Barrackpur expressway, Kalyani, Chakdah",378 m2,22.96055556,88.43888889
+39,INDIA,"Naihati, Barrackpur - I, North 24 Parganas","2,660 m2",22.89527778,88.41055556
+40,INDIA,"Jaggadal, Barrackpur - I, North 24 Parganas","5,622 m2",22.85972222,88.38805556
+41,INDIA,"Chunchura, Chinsurah - Magra, Hugli",693 m2,22.89305556,88.3775
+42,INDIA,"Chandannagar, Singur, Hugli",256 m2,22.87194444,88.35972222
+43,INDIA,"Sardar Bazar, Barrackpore, Barrackpur - II","1,733 m2",22.77027778,88.33777778
+44,INDIA,"Serampore, Serampur Uttarpara, Hugli",622 m2,22.78805556,88.30916667
+45,INDIA,"Beltala, Barrackpore, Barrackpur - II","1,743 m2",22.74888889,88.3825
+46,INDIA,"Serampore, Serampur Uttarpara, Hugli",600 m2,22.72805556,88.34833333
+47,INDIA,"Math Para, Titagarh, Barrackpur - II",346 m2,22.73583333,88.37666667
+48,INDIA,"Lenninagar, Shyamnagar, Garshyamnagar",970 m2,22.81777778,88.37138889
+49,INDIA,"Chandannagar, Singur, Hugli",497 m2,22.83416667,88.34638889
+50,INDIA,"Maheshtala, Thakurpukur Maheshtala, South 24 Parganas","2,294 m2",22.49277778,88.20555556
+51,INDIA,"Maheshtala, Thakurpukur Maheshtala, South 24 Parganas",856 m2,22.54388889,88.27527778
+52,INDIA,"Budge Budge, Budge Budge - I, South 24 Parganas",785 m2,22.47333333,88.18888889
+53,INDIA,"Dhapa Road, Makaltala, Kolkata","91,275 m2",22.53666667,88.42416667
+54,INDIA,"GP Block, Bhangar - II, South 24 Parganas","39,800 m2",22.56416667,88.44805556
+55,INDIA,"Rajpur Sonarpur, Sonarpur, South 24 Parganas",898 m2,22.42222222,88.42527778
+56,INDIA,"Bally, Bally Jagachha, Howrah","3,308 m2",22.63555556,88.33388889
+57,INDIA,"Howrah, Haora, Howrah","1,660 m2",22.61027778,88.32611111
+58,INDIA,"Uttarpara Kotrung, Serampur Uttarpara, Hugli","2,451 m2",22.66666667,88.33527778
+59,INDIA,"Jiaganj, Murshidabad Jiaganj, Murshidabad","1,997 m2",24.22611111,88.26777778
+60,INDIA,"Rajgram, Murarai - I, Birbhum",404 m2,24.54472222,87.87027778
+61,INDIA,"Rampurhat, Rampurhat - I, Birbhum","2,545 m2",24.18777778,87.75694444
+62,INDIA,"Nabadwip, Nadia, West Bengal",932 m2,23.41527778,88.35555556
+63,INDIA,"SH4, Ghatal, Paschim Medinipur","1,845 m2",22.66361111,87.72388889
+64,INDIA,"Bolpur Nursing Home, NH114, Shantiniketan","5,150 m2",23.68055556,87.72222222
+65,INDIA,"Ward 26, Kishangarh, Chandigarh","9,975 m2",30.72333333,76.8275
+66,INDIA,"Sonipat, Haryana, 131001","2,284 m2",29.03555556,77.05916667
+67,INDIA,"Baraut, Baghpat, Uttar Pradesh","1,685 m2",29.085,77.25833333
+68,INDIA,"Sardhana, Meerut, Uttar Pradesh",299 m2,29.14333333,77.61944444
+69,INDIA,"Kurukshetra, Thanesar, Kurukshetra",556 m2,29.96166667,76.83611111
+70,INDIA,"Meerut-Karnal Marg, Mirgain, Karnal","12,127 m2",29.64361111,77.04833333
+71,INDIA,"Panipat, Haryana, 132100",736 m2,29.41444444,76.94972222
+72,INDIA,"Foster Supermarket, E331, Industrial Area","13,429 m2",30.70944444,76.6825
+73,INDIA,"Khanpur, Kharar Tahsil, Sahibzada Ajit Singh Nagar",395 m2,30.76361111,76.63916667
+74,INDIA,"Malerkotla, Malerkotla Tahsil, Sangrur","6,388 m2",30.54666667,75.86388889
+75,INDIA,"Dinanagar, Gurdaspur Tahsil, Gurdaspur district","1,112 m2",32.12722222,75.46916667
+76,INDIA,"Raebareli, Uttar Pradesh, 229001",675 m2,26.20555556,81.27194444
+77,INDIA,"Chowk, Faizabad, Uttar Pradesh",755 m2,26.8,82.14
+78,INDIA,"Karchhana, Prayagraj, Uttar Pradesh","1,841 m2",25.37944444,81.80527778
+79,INDIA,"Unnao, Uttar Pradesh, 209800","10,551 m2",26.55555556,80.52027778
+80,INDIA,"Barabanki, Nawabganj, Barabanki",139 m2,26.93583333,81.21472222
+81,INDIA,"Aurangabad, Sadar, Lucknow",639 m2,26.76416667,80.90833333
+82,INDIA,"Civil Lines, Lucknow, Sadar",363 m2,26.86194444,80.97027778
+83,INDIA,"Tankri, Bawal, Rewari District",487 m2,28.07888889,76.505
+84,INDIA,"Bawal, Rewari District, Haryana",800 m2,28.08083333,76.56805556
+85,INDIA,"Rewari, Rewari District, Haryana",600 m2,28.17861111,76.60638889
+86,INDIA,"Jai Durga Dental Hospital, SH24, Kanina Khas",218 m2,28.33055556,76.30361111
+87,INDIA,"Mahendragarh, Haryana, 123029",451 m2,28.25888889,76.15722222
+88,INDIA,"Summer Sprint PY, Asola, Sohna","1,361 m2",28.40166667,77.17111111
+89,INDIA,"Asola, Sohna, Gurugram","1,003 m2",28.41111111,77.13361111
+90,INDIA,"Vasant Vihar Tehsil, New Delhi, Delhi","8,609 m2",28.53277778,77.12694444
+91,INDIA,"Sainik Farm, Tigri, Saket Tehsil","1,050 m2",28.49888889,77.2225
+92,INDIA,"Allahbas, Dadri, Gautam Buddha Nagar","1,297 m2",28.51861111,77.41666667
+93,INDIA,"Sector 106, Gurgaon, Gurugram","1,399 m2",28.49805556,77.00222222
+94,INDIA,"HUDA, Sector 21, Gurgaon","2,395 m2",28.51333333,77.07111111
+95,INDIA,"Sainik Nagar, Patel Nagar Tehsil, West Delhi",827 m2,28.61583333,77.04333333
+96,INDIA,"Pusta Road, Khajuri, Seelampur","5,564 m2",28.68638889,77.25138889
+97,INDIA,"Sector 59, Ireo City, Sohna",281 m2,28.40555556,77.10444444
+98,INDIA,"Sector 52A, Gurgaon, Gurugram",505 m2,28.43916667,77.0925
+99,INDIA,"Pace CityII, Sector 36, Gurgaon","1,970 m2",28.42194444,76.98944444
+100,INDIA,"Greater Noida, Gautam Buddha Nagar, Uttar Pradesh","3,433 m2",28.50361111,77.53222222
+101,INDIA,"Punjabi Bagh Tehsil, West Delhi, Delhi","1,830 m2",28.665,76.965
+102,INDIA,"Rohini Tehsil, North West Delhi, Delhi",728 m2,28.71472222,77.08222222
+103,INDIA,"Saraswati Vihar Tehsil, North West Delhi, Delhi","1,296 m2",28.71416667,77.16111111
+104,INDIA,"Punjabi Bagh Tehsil, West Delhi, Delhi","2,015 m2",28.67472222,77.13305556
+105,INDIA,"Beri, Jhajjar, Haryana","1,711 m2",28.72916667,76.66972222
+106,INDIA,"Ghaziabad, Ghaziabad District, Uttar Pradesh","1,141 m2",28.7025,77.44666667
+107,INDIA,"Ghaziabad, Ghaziabad District, Uttar Pradesh",642 m2,28.62888889,77.35277778
+108,INDIA,"Ghaziabad, Ghaziabad District, Uttar Pradesh","3,930 m2",28.71611111,77.33166667
+109,INDIA,"Pataudi, Gurugram, Haryana","2,889 m2",28.31972222,76.77472222
+110,INDIA,"Sector 1, Manesar, Gurugram","1,403 m2",28.35666667,76.94388889
+111,INDIA,"Industrial Modern Township Manesar, Manesar, Gurugram","1,336 m2",28.3575,76.91361111
+112,INDIA,"Sector 1, Manesar, Gurugram",948 m2,28.37083333,76.94722222
+113,INDIA,"Manesar, Gurgaon, Gurugram",792 m2,28.38444444,76.92944444
+114,INDIA,"Mathura, Uttar Pradesh, 281001","1,907 m2",27.46083333,77.71194444
+115,INDIA,"Vrindavan, Mathura, Uttar Pradesh","1,414 m2",27.55611111,77.68222222
+116,INDIA,"NH148B, Bhiwani, Bhiwani district","3,094 m2",28.78138889,76.12472222
+117,INDIA,"Rohtak, Haryana, 124001","9,814 m2",28.87777778,76.55305556
+118,INDIA,"Jind, Haryana, 126100","3,054 m2",29.31055556,76.30861111
+119,INDIA,"Bareilly, Bareilly District, Uttar Pradesh",558 m2,28.42472222,79.38972222
+120,INDIA,"Pilibhit, Pilibhit District, Uttar Pradesh",399 m2,28.61888889,79.79305556
+121,INDIA,"Mainpuri, Uttar Pradesh, 205001",685 m2,27.21555556,79.00861111
+122,INDIA,"Laharpur, Sitapur, Uttar Pradesh",330 m2,27.70972222,80.90305556
+123,INDIA,"Moradabad, Uttar Pradesh, India","3,912 m2",28.95722222,78.82444444
+124,INDIA,"Rampur, Rampur District, Uttar Pradesh","7,049 m2",28.81527778,79.01361111
+125,INDIA,"Kashipur, Udham Singh Nagar, Uttarakhand",919 m2,29.21,78.99694444
+126,INDIA,"NH34, Etah, Uttar Pradesh",565 m2,27.57916667,78.62944444
+127,INDIA,"Abohar, Abohar Tahsil, Fazilka","17,116 m2",30.14166667,74.18194444
+128,INDIA,"Dhalleke, Dharamkot Tahsil, Moga",770 m2,30.84222222,75.14194444
+129,INDIA,"Kapurthala, Kapurthala Tahsil, Kapurthala","10,907 m2",31.30333333,75.33444444
+130,INDIA,"Sangaria Road, Hanumangarh, Hanumangarh Tehsil","1,895 m2",29.64555556,74.32055556
+131,INDIA,"Focal Point - 2, Bathinda, Bathinda Tahsil","3,786 m2",30.18194444,74.95333333
+132,INDIA,"ODR32, Giddarbaha, Gidderbaha Tahsil","2,080 m2",30.20083333,74.67111111
+133,INDIA,"Mandi Dabwali, Dabwali, Sirsa","2,085 m2",29.95805556,74.69

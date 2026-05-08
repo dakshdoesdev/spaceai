@@ -38,6 +38,11 @@ class FakeResult:
     names = {0: "brick_kiln"}
 
 
+class FakeNonKilnResult:
+    boxes = FakeBoxes()
+    names = {0: "person"}
+
+
 class YoloDetectorTests(unittest.TestCase):
     def test_missing_yolo_weights_raise_clean_error(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -121,6 +126,13 @@ class YoloDetectorTests(unittest.TestCase):
         self.assertFalse(detection.kiln_detected)
         self.assertIsNone(detection.bbox)
         self.assertEqual(detection.detector_version, DETECTOR_VERSION)
+
+    def test_yolo_non_kiln_class_is_not_counted_as_detection(self):
+        detection = normalize_yolo_results(tile_id="tile_001", results=[FakeNonKilnResult()], confidence_threshold=0.25)
+
+        self.assertFalse(detection.kiln_detected)
+        self.assertIsNone(detection.bbox)
+        self.assertIn("yolo_no_detection", detection.signals)
 
     def test_real_yolo_inference_requires_optional_local_setup(self):
         if importlib.util.find_spec("ultralytics") is None:

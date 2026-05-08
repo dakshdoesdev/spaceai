@@ -1,0 +1,8 @@
+﻿id,name,lat,lon,type,fuel,region,country,status,capacity_tonnes,emfpm10, pm10_t_yr,emfpm25,pm25_t_yr,emfso2,so2_t_yr,emfnox,nox_t_yr,source
+PPN-1,Nigerian Newsprint Manufacturing Company Ltd,5.15654,8.04994,Pulp and paper and packaging,No information,Akwa Ibom,Nigeria,Operating,"110,000",,,,,,,,,
+PPN-2,"Nigeria Paper Mill, Jebba",9.208709558,4.831642231,Paper,No information,Kwara,Nigeria,Operating,"225,000",,,,,,,,,
+PPN-3,Speciality Paper Ltd,6.68499994,3.800563449,Paper,No information,Ogun State,Nigeria,Operating,No information,,,,,,,,,
+PPN-4,"Iwopin Pulp and Paper Company Ltd, Mill Site Iwopin",6.8299846,3.9164585,Paper,No information,Ogun State,Nigeria,Operating,"68,000",,,,,,,,,
+PPN-5,Prorich Product Nigeria Limited,6.828758378,3.471953843,Paper,No information,Ogun State,Nigeria,Operating,No information,,,,,,,,,
+PPU-6,Papco Industries Ltd,0.45392112,33.1869802,Paper,No information,,Uganda,Operating,No information,,,,,,,,,
+PPU-7,Modern Laminates Ltd,0.427293713,33.16964219,Pulp and paper,No information,,Uganda,Operating,"128,000",,,,,,,,,

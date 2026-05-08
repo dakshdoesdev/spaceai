@@ -16,8 +16,8 @@ class FetchDemoTilesTests(unittest.TestCase):
             manifest_path = root / "manifest.jsonl"
             csv_path.write_text(
                 "tile_id,lat,lon,region_name,expected_label,source,notes\n"
-                "panipat_positive_001,29.39,76.96,Panipat,positive,manual_test,reviewed positive\n"
-                "panipat_negative_001,29.40,76.97,Panipat,negative,manual_test,reviewed negative\n",
+                "haryana_positive_001,29.39,76.96,Haryana India,positive,manual_test,reviewed positive\n"
+                "haryana_negative_001,29.40,76.97,Haryana India,negative,manual_test,reviewed negative\n",
                 encoding="utf-8",
             )
 
@@ -25,8 +25,8 @@ class FetchDemoTilesTests(unittest.TestCase):
             records = build_demo_tiles(rows, mode="placeholder", tile_dir=tile_dir, manifest_path=manifest_path)
 
             self.assertEqual(len(records), 2)
-            self.assertTrue((tile_dir / "panipat_positive_001.tile").exists())
-            self.assertTrue((tile_dir / "panipat_positive_001.tile.meta.json").exists())
+            self.assertTrue((tile_dir / "haryana_positive_001.tile").exists())
+            self.assertTrue((tile_dir / "haryana_positive_001.tile.meta.json").exists())
             self.assertTrue(records[0]["kiln_detected"])
             self.assertFalse(records[1]["kiln_detected"])
             self.assertTrue(records[0]["is_placeholder"])
@@ -48,8 +48,8 @@ class FetchDemoTilesTests(unittest.TestCase):
             manifest_path = root / "manifest.jsonl"
             csv_path.write_text(
                 "tile_id,lat,lon,region_name,expected_label,source,notes\n"
-                "panipat_positive_001,29.39,76.96,Panipat,positive,manual_test,reviewed positive\n"
-                "panipat_negative_001,29.40,76.97,Panipat,negative,manual_test,reviewed negative\n",
+                "haryana_positive_001,29.39,76.96,Haryana India,positive,manual_test,reviewed positive\n"
+                "haryana_negative_001,29.40,76.97,Haryana India,negative,manual_test,reviewed negative\n",
                 encoding="utf-8",
             )
 
@@ -71,10 +71,10 @@ class FetchDemoTilesTests(unittest.TestCase):
             manifest_path = root / "manifest.jsonl"
             csv_path.write_text(
                 "tile_id,lat,lon,region_name,expected_label,source,notes\n"
-                "panipat_positive_001,29.39,76.96,Panipat,positive,manual_image_import,real local image\n",
+                "haryana_positive_001,29.39,76.96,Haryana India,positive,manual_image_import,real local image\n",
                 encoding="utf-8",
             )
-            write_test_png(local_images / "panipat_positive_001.png")
+            write_test_png(local_images / "haryana_positive_001.png")
 
             records = build_demo_tiles(
                 read_coordinate_csv(csv_path),
@@ -84,7 +84,7 @@ class FetchDemoTilesTests(unittest.TestCase):
                 local_image_dir=local_images,
             )
 
-            self.assertEqual(records[0]["image_path"], str(root / "raw_tiles" / "panipat_positive_001.png"))
+            self.assertEqual(records[0]["image_path"], str(root / "raw_tiles" / "haryana_positive_001.png"))
             self.assertFalse(records[0]["is_placeholder"])
             self.assertTrue(records[0]["is_real_imagery"])
             self.assertEqual(validate_manifest_file(manifest_path, check_images=True), [])
@@ -97,10 +97,10 @@ class FetchDemoTilesTests(unittest.TestCase):
             local_images.mkdir()
             csv_path.write_text(
                 "tile_id,lat,lon,region_name,expected_label,source,notes\n"
-                "panipat_positive_001,29.39,76.96,Panipat,positive,manual_image_import,bad local image\n",
+                "haryana_positive_001,29.39,76.96,Haryana India,positive,manual_image_import,bad local image\n",
                 encoding="utf-8",
             )
-            (local_images / "panipat_positive_001.png").write_bytes(b"not an image")
+            (local_images / "haryana_positive_001.png").write_bytes(b"not an image")
 
             with self.assertRaisesRegex(ValueError, "readable image"):
                 build_demo_tiles(
@@ -135,7 +135,7 @@ class FetchDemoTilesTests(unittest.TestCase):
 def _write_one_row_csv(path: Path) -> Path:
     path.write_text(
         "tile_id,lat,lon,region_name,expected_label,source,notes\n"
-        "panipat_positive_001,29.39,76.96,Panipat,positive,manual_test,reviewed positive\n",
+        "haryana_positive_001,29.39,76.96,Haryana India,positive,manual_test,reviewed positive\n",
         encoding="utf-8",
     )
     return path

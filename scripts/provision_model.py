@@ -1,18 +1,24 @@
-from ultralytics import YOLO
-import shutil
 from pathlib import Path
 
-def provision_model():
-    print("Downloading placeholder YOLO model...")
-    # This will download yolov8n.pt to the current directory
-    model = YOLO('yolov8n.pt')
-    
-    models_dir = Path('models')
+from ultralytics import YOLO
+
+
+def provision_model() -> int:
+    print("Downloading stock YOLO smoke-test weights.")
+    print("This does not create models/brick_kiln_yolo.pt and must not be claimed as a kiln detector.")
+    YOLO("yolov8n.pt")
+
+    models_dir = Path("models")
     models_dir.mkdir(exist_ok=True)
-    
-    dest = models_dir / 'brick_kiln_yolo.pt'
-    shutil.move('yolov8n.pt', dest)
-    print(f"Moved placeholder model to {dest}")
+    dest = models_dir / "yolov8n_stock_smoke.pt"
+    source = Path("yolov8n.pt")
+    if source.exists():
+        source.replace(dest)
+        print(f"Saved stock smoke-test model to {dest}")
+    else:
+        print("Ultralytics loaded stock weights from cache; no local yolov8n.pt file was created.")
+    return 0
+
 
 if __name__ == "__main__":
-    provision_model()
+    raise SystemExit(provision_model())

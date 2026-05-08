@@ -1,2 +1,2 @@
 expected_label,lat,lon,notes,region_name,source,tile_id
-positive,29.390900,76.963500,"Paste APAD/manual brick kiln coordinate here. Keep source/license notes. This file is a template only, not ground truth.","Panipat Haryana","apad_local_csv_or_manual_review","apad_panipat_replace_001"
+positive,29.390900,76.963500,"Paste APAD/manual brick kiln coordinate here. Keep source/license notes. This file is a template only, not ground truth.","Haryana, India","apad_local_csv_or_manual_review","apad_haryana_replace_001"

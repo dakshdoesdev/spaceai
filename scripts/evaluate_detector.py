@@ -8,6 +8,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    from sklearn.metrics import precision_score, recall_score, accuracy_score, roc_auc_score
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+
 
 DEFAULT_MANIFEST = Path("datasets/kilnwatch/manifests/baseline_sample_eval_manifest.jsonl")
 DEFAULT_TELEMETRY = Path("transmission_queue/telemetry.jsonl")
@@ -40,7 +46,7 @@ def evaluate_detector(manifest_path: Path, telemetry_path: Path) -> dict[str, An
     detector_mode = _detector_mode([record for _, record in evaluated])
     sample_or_placeholder = _is_simulated(manifest_rows, [record for _, record in evaluated], detector_mode)
 
-    return {
+    result = {
         "evaluation_status": "simulated_baseline" if sample_or_placeholder else "real_yolo",
         "overclaim_warning": _warning(sample_or_placeholder, missing_predictions),
         "manifest_path": str(manifest_path),
@@ -60,6 +66,30 @@ def evaluate_detector(manifest_path: Path, telemetry_path: Path) -> dict[str, An
         "bandwidth_saved": bandwidth_saved,
         "bandwidth_saved_percent": round((bandwidth_saved / raw_bytes) * 100, 2) if raw_bytes else 0.0,
     }
+
+    if SKLEARN_AVAILABLE and evaluated:
+        y_true = [1 if _truth_positive(row) else 0 for row, _ in evaluated]
+        y_pred_label = [1 if _predicted_positive(record) else 0 for _, record in evaluated]
+        y_pred_prob = [_confidence(record) or (1.0 if _predicted_positive(record) else 0.0) for _, record in evaluated]
+
+        precision = precision_score(y_true, y_pred_label, zero_division=0)
+        recall = recall_score(y_true, y_pred_label, zero_division=0)
+        accuracy = accuracy_score(y_true, y_pred_label)
+        
+        result["sklearn_metrics"] = {
+            "precision": round(precision, 4),
+            "recall": round(recall, 4),
+            "accuracy": round(accuracy, 4),
+        }
+        
+        try:
+            auc = roc_auc_score(y_true, y_pred_prob)
+            result["sklearn_metrics"]["roc_auc"] = round(auc, 4)
+        except ValueError:
+            # roc_auc_score throws ValueError if only one class is present in y_true
+            result["sklearn_metrics"]["roc_auc"] = None
+
+    return result
 
 
 def main() -> int:

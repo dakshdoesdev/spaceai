@@ -14,10 +14,14 @@ from .liquid_vlm_reasoner import LiquidReasonerError, Reasoner, build_reasoner
 from .payloads import (
     attach_byte_accounting,
     build_transmission_payload,
+    copy_full_tile,
+    crop_required_for,
     encode_payload,
+    full_tile_required_for,
     generate_crop_file,
-    should_transmit_alert,
+    should_transmit_triage,
     telemetry_record,
+    triage_label,
 )
 from .yolo_detector import DEFAULT_MODEL_PATH, YoloDetectorError
 
@@ -68,34 +72,65 @@ def simulate_orbital_pass(
             detection = detector.detect_tile(tile_path)
             latency_ms = (time.perf_counter() - started) * 1000
 
-            crop_artifact = generate_crop_file(tile_path, detection, transmission_queue / "crops")
+            # Liquid runs first when enabled, on the cropped region or whole tile —
+            # its compliance_risk feeds the triage decision below.
             vlm_reasoning = None
             if reasoner is not None and detection.kiln_detected:
                 vlm_reasoning = reasoner.reason(
                     image_path=tile_path,
                     detection=detection,
-                    crop_path=crop_artifact.path,
+                    crop_path=None,  # crop artifact is decided by triage; pass tile here
                 )
-            if require_crops and should_transmit_alert(detection) and crop_artifact.path is None:
-                detail = crop_artifact.error or "detector produced an alert without a crop artifact"
+
+            # Compute the four-tier triage decision — this is the actual transmit gate.
+            triage = triage_label(detection, vlm_reasoning, min_confidence=confidence_threshold)
+            decision = triage["decision"]
+
+            # Generate crop only for tiers that need one.
+            crop_artifact = generate_crop_file(
+                tile_path,
+                detection,
+                transmission_queue / "crops",
+                triage_decision=decision,
+            )
+            # Copy the whole tile only on FULL_DOWNLINK.
+            full_tile_artifact = copy_full_tile(
+                tile_path,
+                detection.tile_id,
+                transmission_queue / "full_tiles",
+                triage_decision=decision,
+            )
+
+            if require_crops and crop_required_for(decision) and crop_artifact.path is None:
+                detail = crop_artifact.error or "tier requires a crop but none was produced"
                 raise RequiredCropUnavailable(f"{detection.tile_id}: {detail}")
 
             output_path = None
             json_payload_bytes = 0
             transmitted_bytes = 0
-            if should_transmit_alert(detection) or write_drop_payloads:
+            if should_transmit_triage(decision) or write_drop_payloads:
                 payload = build_transmission_payload(
                     detection,
                     tile_path,
                     crop_artifact,
                     vlm_reasoning,
                     triage_min_confidence=confidence_threshold,
+                    full_tile_artifact=full_tile_artifact,
                 )
                 output_path = transmission_queue / f"{detection.tile_id}.json"
-                payload_bytes = _finalize_payload_bytes(payload, original_bytes, crop_artifact.size_bytes)
+                payload_bytes = _finalize_payload_bytes(
+                    payload,
+                    original_bytes,
+                    crop_artifact.size_bytes,
+                    full_tile_artifact.size_bytes,
+                )
                 output_path.write_bytes(payload_bytes)
                 json_payload_bytes = output_path.stat().st_size
-                transmitted_bytes = json_payload_bytes + crop_artifact.size_bytes
+                transmitted_bytes = (
+                    json_payload_bytes
+                    + crop_artifact.size_bytes
+                    + full_tile_artifact.size_bytes
+                )
 
             record = telemetry_record(
                 tile_path=tile_path,
@@ -110,6 +145,9 @@ def simulate_orbital_pass(
                 output_path=output_path,
                 vlm_reasoning=vlm_reasoning,
                 triage_min_confidence=confidence_threshold,
+                full_tile_payload_bytes=full_tile_artifact.size_bytes,
+                full_tile_path=full_tile_artifact.path,
+                full_tile_error=full_tile_artifact.error,
             )
             record["requested_detector_mode"] = detector_mode
             record["requested_reasoner_mode"] = reasoner_mode
@@ -119,9 +157,14 @@ def simulate_orbital_pass(
     return records
 
 
-def _finalize_payload_bytes(payload: dict, original_bytes: int, crop_bytes: int) -> bytes:
+def _finalize_payload_bytes(
+    payload: dict,
+    original_bytes: int,
+    crop_bytes: int,
+    full_tile_bytes: int = 0,
+) -> bytes:
     json_bytes = 0
-    transmitted_bytes = crop_bytes
+    transmitted_bytes = crop_bytes + full_tile_bytes
     for _ in range(8):
         attach_byte_accounting(
             payload,
@@ -129,10 +172,11 @@ def _finalize_payload_bytes(payload: dict, original_bytes: int, crop_bytes: int)
             json_payload_bytes=json_bytes,
             crop_payload_bytes=crop_bytes,
             transmitted_payload_bytes=transmitted_bytes,
+            full_tile_payload_bytes=full_tile_bytes,
         )
         payload_bytes = encode_payload(payload)
         next_json_bytes = len(payload_bytes)
-        next_transmitted_bytes = next_json_bytes + crop_bytes
+        next_transmitted_bytes = next_json_bytes + crop_bytes + full_tile_bytes
         if next_json_bytes == json_bytes and next_transmitted_bytes == transmitted_bytes:
             return payload_bytes
         json_bytes = next_json_bytes
@@ -143,6 +187,7 @@ def _finalize_payload_bytes(payload: dict, original_bytes: int, crop_bytes: int)
         json_payload_bytes=json_bytes,
         crop_payload_bytes=crop_bytes,
         transmitted_payload_bytes=transmitted_bytes,
+        full_tile_payload_bytes=full_tile_bytes,
     )
     return encode_payload(payload)
 
@@ -159,9 +204,10 @@ def _reset_transmission_queue(transmission_queue: Path) -> None:
     if telemetry_path.exists() and telemetry_path.is_file():
         telemetry_path.unlink()
 
-    crops_dir = transmission_queue / "crops"
-    if crops_dir.exists() and crops_dir.is_dir():
-        shutil.rmtree(crops_dir)
+    for sub in ("crops", "full_tiles"):
+        sub_dir = transmission_queue / sub
+        if sub_dir.exists() and sub_dir.is_dir():
+            shutil.rmtree(sub_dir)
 
 
 def main() -> int:

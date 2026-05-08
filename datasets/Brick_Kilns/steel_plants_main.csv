@@ -1,0 +1,46 @@
+id,name,lat,lon,type, fuel,region,country,status,capacity_tonnes,emfpm10,pm10_t_yr,emfpm25,pm25_t_yr,emfso2,so2_t_yr,emfnox,nox_t_yr,source
+SPB-1,Megnha Re-rolling and Steel Mills steel plant,23.585487,90.648875,EAF,,Chittagong,Bangladesh,Operating,2300000,0.00381,8763,0.00251,5773,0.00144,3312,0.00047,1081,
+SPI-1,Orissa Metaliks Pvt Ltd,22.378355,87.281773,Integrated,,West Bengal,India,Operating,990000,0.00381,3771.9,0.00251,2484.9,0.00144,1425.6,0.00047,465.3,
+SPI-2,Steel Authority of India Ltd,23.665198,86.917455,Integrated,,West Bengal,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-3,Tata Steel Ltd,22.385611,87.287179,Integrated,,West Bengal,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-4,Maithan Steel & Power Limited (Unit 2),23.776213,86.866906,,,West Bengal,India,Operating,413365,0.00381,1574.92065,0.00251,1037.54615,0.00144,595.2456,0.00047,194.28155,
+SPI-5,Jindal Stainless Ltd,29.127253,75.773075,,,Haryana,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-6,KR Steel Union Ltd,22.976512,88.46118,,,West Bengal,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-7,Tata Steel BSL Ltd,28.648921,77.331907,,,Uttar Pradesh,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-8,Orissa Alloy Steel Kharagpur Plant,22.364258,87.309047,BOF,,,India,Operating,47000,0.00381,179.07,0.00251,117.97,0.00144,67.68,0.00047,22.09,
+SPI-9,Usha Martin Ltd,31.583478,75.95079,,,Punjab,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-10,Rashmi Metaliks Kharagpur steel plant,22.36277883,87.29904,BOF,,,India,Operating,43000,0.00381,163.83,0.00251,107.93,0.00144,61.92,0.00047,20.21,
+SPI-11,Jai Balaji Durgapur Unit IV steel plant,23.48384,87.359863,,,,India,Operating,25000,0.00381,95.25,0.00251,62.75,0.00144,36,0.00047,11.75,
+SPI-12,Jsw Steel coated products limited,28.097508,76.58241,,,Haryana,India,Operating,1800000,0.00381,6858,0.00251,4518,0.00144,2592,0.00047,846,
+SPI-13,Allied Strips Limited,28.734516,76.842644,,,Haryana,India,Operating,300000,0.00381,1143,0.00251,753,0.00144,432,0.00047,141,
+SPI-14,Arjas Modern Steel Private Limited,30.651464,76.317017,,,Punjab,India,Operating,300000,0.00381,1143,0.00251,753,0.00144,432,0.00047,141,
+SPI-15,,30.845731,75.960442,,,Punjab,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-16,Vardhman Special Steels Ludhiana steel plant,30.890103,75.9086,EAF,,Punjab,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-17,Gallantt Ispat Gorakhpur steel plant,26.75892462,83.20164,BOF,,,India,Operating,35000,0.00381,133.35,0.00251,87.85,0.00144,50.4,0.00047,16.45,c_t
+SPI-18,SAIL IISCO Steel Plant,23.66556822,86.92061117,BOF,,,India,Operating,220000,0.00381,838.2,0.00251,552.2,0.00144,316.8,0.00047,103.4,c_t
+SPI-19,Shyam Metalics Jamuria Steel Plant,23.68854806,87.122778,BOF,,,India,Operating,98000,0.00381,373.38,0.00251,245.98,0.00144,141.12,0.00047,46.06,c_t
+SPI-20,Shyam Steel Mejia Steel Plant,23.56371354,87.08649145,BOF,,,India,Operating,11000,0.00381,41.91,0.00251,27.61,0.00144,15.84,0.00047,5.17,c_t
+SPI-21,SAIL Durgapur steel plant,23.55029744,87.246697,BOF,,,India,Operating,190000,0.00381,723.9,0.00251,476.9,0.00144,273.6,0.00047,89.3,c_t
+SPI-22,SAIL Alloy Steel Plant,23.5273377,87.269479,EAF,,,India,Operating,43000,0.00381,163.83,0.00251,107.93,0.00144,61.92,0.00047,20.21,c_t
+SPI-23,Rashmi Green Hydrogen Steel Kharagpur steel plant,22.331489,87.398085,BOF,,West Bengal,India,Operating,6200,0.00381,23.622,0.00251,15.562,0.00144,8.928,0.00047,2.914,c_t
+SPI-24,Orissa Steel and Power Jhargram Steel Plant,22.3591,87.017184,DRI,,West Bengal,India,Operating,6400,0.00381,24.384,0.00251,16.064,0.00144,9.216,0.00047,3.008,
+SPI-25,JSW Bengal Steel Salboni plant,22.575726,87.310258,BOF,,West Bengal,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPI-26,Captain Steel Garbeta steel plant,22.855859,87.345018,,,West Bengal,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,https://www.gem.wiki/Captain_Steel_Garbeta_steel_plant
+SPI-27,Jai Balaji Rajbandh Unit III steel plant,23.487439,87.369494,EAF,,West Bengal,India,Operating,1208,0.00381,4.60248,0.00251,3.03208,0.00144,1.73952,0.00047,0.56776,https://www.gem.wiki/Jai_Balaji_Rajbandh_Unit_III_steel_plant
+SPI-28,KIC Metaliks Durgapur steel plant,23.507539,87.277914,DRI,,West Bengal,India,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,https://www.gem.wiki/KIC_Metaliks_Durgapur_steel_plant
+SPI-29,Rashmi Metaliks Jamuria steel plant,23.706343,87.07774,EAF,,West Bengal,India,Operating,,,,,,,,,,https://www.gem.wiki/Rashmi_Metaliks_Jamuria_steel_plant
+SPI-30,Tata Steel Ludhiana steel plant,30.946888,75.9875,EAF,,Punjab,India,Operating,,,,,,,,,,https://www.gem.wiki/Tata_Steel_Ludhiana_steel_plant
+SPP-1,Aisha Steel Mills Ltd,24.840713,67.34738,Downstream,,Sindh,Pakistan,Operating,700000,0.00381,2667,0.00251,1757,0.00144,1008,0.00047,329,
+SPP-2,Ishtiaq Steel Industry,31.610191,74.362308,,,Punjab,Pakistan,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,
+SPP-3,Peoples Steel Mills Ltd,24.96585,67.022604,Mini-Mill,,Sindh,Pakistan,Operating,70000,0.00381,266.7,0.00251,175.7,0.00144,100.8,0.00047,32.9,
+SPP-4,Al Tuwairqi Holding Co,24.794878,67.353327,DRI,,Sindh,Pakistan,Operating,1280000,0.00381,4876.8,0.00251,3212.8,0.00144,1843.2,0.00047,601.6,
+SPP-5,Amreli Steels Ltd,24.800326,67.504851,Mini-Mill,,Sindh,Pakistan,Operating,900000,0.00381,3429,0.00251,2259,0.00144,1296,0.00047,423,c_t
+SPP-7,International Industries Ltd,24.837855,67.231431,Downstream,,Sindh,Pakistan,Operating,1000000,0.00381,3810,0.00251,2510,0.00144,1440,0.00047,470,
+SPP-8,Ittefaq Iron Industries Ltd,31.258774,74.132858,Downstream,,Punjab,Pakistan,Operating,120000,0.00381,457.2,0.00251,301.2,0.00144,172.8,0.00047,56.4,
+SPP-9,Pakistan Steel Mills Corp Pvt Ltd,24.805135,67.346694,Integrated,,Sindh,Pakistan,Operating,1100000,0.00381,4191,0.00251,2761,0.00144,1584,0.00047,517,
+SPP-10,Siddiqsons Group,25.382244,66.676192,Downstream,,Balochistan,Pakistan,Operating,200000,0.00381,762,0.00251,502,0.00144,288,0.00047,94,
+SPP-11,Faizan Steel Karachi,24.89711942,66.98584546,BOF,,Sindh,Pakistan,Operating,62000,0.00381,236.22,0.00251,155.62,0.00144,89.28,0.00047,29.14,c_t
+SPP-12,Agha Steel Industries Karachi plant,24.84185345,67.31134844,EAF,,Sindh,Pakistan,Operating,23000,0.00381,87.63,0.00251,57.73,0.00144,33.12,0.00047,10.81,c_t
+SPP-13,Ittehad Steel Faisalabad plant,31.643426,73.198542,BOF,,Punjab,Pakistan,Operating,68000,0.00381,259.08,0.00251,170.68,0.00144,97.92,0.00047,31.96,c_t
+SPP-14,Mughal Iron & Steel Industries Lahore plant,31.6525455,74.18044798,BOF,,Punjab,Pakistan,Operating,99000,0.00381,377.19,0.00251,248.49,0.00144,142.56,0.00047,46.53,c_t
+SPP-15,Century Steel Khyber plant,34.124213,72.019181,,,Khyber Pakhtunkhwa,Pakistan,Operating,,0.00381,0,0.00251,0,0.00144,0,0.00047,0,https://www.gem.wiki/Century_Steel_Khyber_plant

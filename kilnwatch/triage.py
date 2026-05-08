@@ -42,14 +42,18 @@ def risk_band(risk_score: float) -> str:
     return "low"
 
 
-def compute_triage(prediction: dict[str, Any]) -> TriageResult:
+def compute_triage(
+    prediction: dict[str, Any],
+    *,
+    min_confidence: float = 0.45,
+) -> TriageResult:
     """Convert model output into a satellite-side downlink decision."""
     detection = _primary_detection(prediction)
     confidence = _as_float(detection.get("confidence", prediction.get("confidence", 0.0)))
     risk_score = _as_float(prediction.get("compliance_risk_score", prediction.get("risk_score", 0.0)))
     kiln_detected = bool(detection.get("kiln_detected", prediction.get("kiln_detected", False)))
 
-    if not kiln_detected or confidence < 0.45:
+    if not kiln_detected or confidence < min_confidence:
         decision = TriageDecision.IGNORE
         reason = "No kiln or low-confidence kiln signal."
     elif confidence >= 0.85 and risk_score >= 0.75:

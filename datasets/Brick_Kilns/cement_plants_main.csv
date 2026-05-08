@@ -1,0 +1,98 @@
+﻿id,name,lat,lon,type, fuel,region,country,status,capacity_tonnes,emfpm10, pm10_t_yr,emfpm25, pm25_t_yr,emfso2, so2_t_yr,emfnox, nox_t_yr
+CMB-1,Heidelberg Cement Bangladesh Ltd - Kanchpur Plant,23.712851,90.51604759,grinding,,Dhaka Division,Bangladesh,operating,1500000,0.0002223,333.45,0.0001235,185.25,0.0007695,1154.25,0.000494,741
+CMB-2,LafargeHolcim Bangladesh Ltd,23.611005,90.613007,grinding,,Dhaka Division,Bangladesh,operating,2707000,0.0002223,601.7661,0.0001235,334.3145,0.0007695,2083.0365,0.000494,1337.258
+CMB-3,LafargeHolcim Bangladesh Ltd,22.504972,89.589503,grinding,,Khulna Division,Bangladesh,operating,200000,0.0002223,44.46,0.0001235,24.7,0.0007695,153.9,0.000494,98.8
+CMB-4,Shun Shing Cement Mills Ltd,22.317574,91.867925,grinding,,Khulna Division,Bangladesh,operating,1500000,0.0002223,333.45,0.0001235,185.25,0.0007695,1154.25,0.000494,741
+CMB-5,Mongla Cement Factory,22.51790184,89.58562037,grinding,,Khulna Division,Bangladesh,operating,1700000,0.0002223,377.91,0.0001235,209.95,0.0007695,1308.15,0.000494,839.8
+CMB-6,"
+Crown Cement Factory Ltd.",23.576689,90.508382,grinding,,Dhaka Division,Bangladesh,operating,4620000,0.0002223,1027.026,0.0001235,570.57,0.0007695,3555.09,0.000494,2282.28
+CMB-7,"
+Elephant Brand Cement",22.517834,89.585596,grinding,,Khulna Division,Bangladesh,operating,,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMB-8,Scan Cement Factory,23.568501,90.520327,grinding,,Dhaka Division,Bangladesh,operating,700000,0.0002223,155.61,0.0001235,86.45,0.0007695,538.65,0.000494,345.8
+CMB-9,"
+Five Rings Cement Industries",22.503884,89.590302,grinding,,Khulna Division,Bangladesh,operating,,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMB-10,Anchor Cement Company,22.652466,90.345293,grinding,,Barisal Division,Bangladesh,operating,1460000,0.0002223,324.558,0.0001235,180.31,0.0007695,1123.47,0.000494,721.24
+CMB-11,"
+Shah Cement",23.568618,90.524404,grinding,,Dhaka Division,Bangladesh,operating,1860000,0.0002223,413.478,0.0001235,229.71,0.0007695,1431.27,0.000494,918.84
+CMB-12,"
+Premier cement mills 3/4 point",23.578555,90.513202,grinding,,Dhaka Division,Bangladesh,operating,2400000,0.0002223,533.52,0.0001235,296.4,0.0007695,1846.8,0.000494,1185.6
+CMB-13,"
+Anwar Cement Ltd.Plant",23.602161,90.624685,grinding,,Dhaka Division,Bangladesh,operating,700000,0.0002223,155.61,0.0001235,86.45,0.0007695,538.65,0.000494,345.8
+CMB-14,"
+Unique Cement Mills",23.609232,90.61001,grinding,,Dhaka Division,Bangladesh,operating,,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMB-15,N/A,24.127959,89.586911,grinding,,Rajshahi Division,Bangladesh,operating,,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMB-16,Aman Cement Mills Ltd.,24.290893,89.566546,grinding,,Rajshahi Division,Bangladesh,operating,750000,0.0002223,166.725,0.0001235,92.625,0.0007695,577.125,0.000494,370.5
+CMB-17,Shun Shing Cement Mills Ltd (Plant 2),22.317574,91.867925,grinding,,Chittagong,Bangladesh,operating,3450000,0.0002223,766.935,0.0001235,426.075,0.0007695,2654.775,0.000494,1704.3
+CMB-18,Shun Shing Cement Mills Ltd (Plant 3),23.934081,90.613085,grinding,,Dhaka Division,Bangladesh,operating,3450000,0.0002223,766.935,0.0001235,426.075,0.0007695,2654.775,0.000494,1704.3
+CMB-19,Heidelberg Materials Bangladesh PLC. - Chattogram Plant,22.27897277,91.78525692,grinding,,Chittagong,Bangladesh,operating,1300000,0.0002223,288.99,0.0001235,160.55,0.0007695,1000.35,0.000494,642.2
+CMB-20,Heidelberg Cement Bangladesh Ltd - Munshiganj Plant,23.56866064,90.52063186,grinding,,Dhaka Division,Bangladesh,operating,600000,0.0002223,133.38,0.0001235,74.1,0.0007695,461.7,0.000494,296.4
+CMI-3,RCCPL Pvt Ltd,26.404843,81.130322,grinding,,Uttar Pradesh,India,operating,2000000,0.0002223,444.6,0.0001235,247,0.0007695,1539,0.000494,988
+CMI-4,ACC Ltd,26.190592,81.706283,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-5,Ambuja Cements Ltd,30.233638,74.912213,grinding,,Punjab,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-6,Ambuja Cements Ltd,28.570512,77.546556,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-7,Ambuja Cements Ltd,22.569254,88.194228,grinding,,West Bengal,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-8,Ambuja Cements Ltd,29.967487,77.769868,grinding,,Uttarakhand,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-9,Ambuja Cements Ltd,24.775292,87.88645,grinding,,West Bengal,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-10,Century Cement,24.388462,88.083237,grinding,,West Bengal,India,operating,2000000,0.0002223,444.6,0.0001235,247,0.0007695,1539,0.000494,988
+CMI-11,Nu Vista Ltd,23.439328,87.51119,grinding,,West Bengal,India,operating,2500000,0.0002223,555.75,0.0001235,308.75,0.0007695,1923.75,0.000494,1235
+CMI-12,Nuvoco Vistas Corporation Ltd,23.461907,87.120726,grinding,,West Bengal,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-13,Kalyanpur Cements Ltd,24.670568,83.9891,integrated,,Bihar,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-14,Nuvoco Vistas Corporation Ltd,28.455175,76.273575,grinding,,Haryana,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-15,Nu Vista Ltd,25.223534,83.461625,grinding,,Bihar,India,operating,800000,0.0002223,177.84,0.0001235,98.8,0.0007695,615.6,0.000494,395.2
+CMI-16,OCL India Ltd,22.528774,87.313274,grinding,,West Bengal,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-17,Ramco Cements Ltd,22.423362,87.862852,grinding,,West Bengal,India,operating,1950000,0.0002223,433.485,0.0001235,240.825,0.0007695,1500.525,0.000494,963.3
+CMI-18,J K Cement Ltd,28.490245,76.386299,grinding,,Haryana,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-19,Shree Cement Ltd,29.758381,78.062049,grinding,,Uttarakhand,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-20,JK Lakshmi Cement Ltd,28.495111,76.358152,grinding,,Haryana,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-21,Shree Cement Ltd,24.774342,84.354352,grinding,,Bihar,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-22,Shree Cement Ltd,28.480534,77.658796,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-23,Shree Cement Ltd,29.396089,76.889313,grinding,,Haryana,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-24,JSW Cement Ltd,22.576171,87.309609,integrated,,West Bengal,India,operating,2400000,0.0002223,533.52,0.0001235,296.4,0.0007695,1846.8,0.000494,1185.6
+CMI-25,Shree Cement Ltd,29.156732,73.865416,grinding,,Rajasthan,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-26,UltraTech Cement Ltd,24.449401,83.039567,integrated,,Uttar Pradesh,India,operating,2360000,0.0002223,524.628,0.0001235,291.46,0.0007695,1816.02,0.000494,1165.84
+CMI-27,UltraTech Cement Ltd,26.576623,82.584652,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-28,UltraTech Cement Ltd,22.726902,88.26913,grinding,,West Bengal,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-29,UltraTech Cement Ltd,28.505156,76.36704,grinding,,Haryana,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-30,UltraTech Cement Ltd,29.289373,76.808284,grinding,,Haryana,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-31,UltraTech Cement Ltd,27.989507,78.136713,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-32,UltraTech Cement Ltd,30.272417,75.162379,grinding,,Punjab,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-33,UltraTech Cement Ltd,23.492432,87.362242,grinding,,West Bengal,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-34,UltraTech Cement Ltd,28.578002,77.592701,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-35,UltraTech Cement Ltd,25.395551,85.292394,grinding,,Bihar,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-36,UltraTech Cement Ltd,29.888977,77.812058,grinding,,Uttarakhand,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMI-37,Anwarzaib White Cement Ltd,25.315639,68.215568,integrated,,Sindh,Pakistan,operating,50000,0.0002223,11.115,0.0001235,6.175,0.0007695,38.475,0.000494,24.7
+CMI-38,Askari Cement Ltd,33.802044,72.095823,integrated,,Khyber Pakhtunkhwa,Pakistan,operating,2070000,0.0002223,460.161,0.0001235,255.645,0.0007695,1592.865,0.000494,1022.58
+CMI-39,UltraTech Cement Ltd,28.469413,77.666031,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMP-1,Askari Cement Ltd,33.817001,72.721614,integrated,,Punjab,Pakistan,operating,1340000,0.0002223,297.882,0.0001235,165.49,0.0007695,1031.13,0.000494,661.96
+CMP-2,Bestway Cement Ltd,32.721675,72.924369,integrated,,Punjab,Pakistan,operating,3430000,0.0002223,762.489,0.0001235,423.605,0.0007695,2639.385,0.000494,1694.42
+CMP-3,Bestway Cement Ltd,33.829331,72.831164,integrated,,Punjab,Pakistan,operating,3000000,0.0002223,666.9,0.0001235,370.5,0.0007695,2308.5,0.000494,1482
+CMP-4,Bestway Cement Ltd,33.849229,72.872128,integrated,,Khyber Pakhtunkhwa,Pakistan,operating,1230000,0.0002223,273.429,0.0001235,151.905,0.0007695,946.485,0.000494,607.62
+CMP-5,Bestway Cement Ltd,32.717428,72.775661,integrated,,Punjab,Pakistan,operating,2494200,0.0002223,554.46066,0.0001235,308.0337,0.0007695,1919.2869,0.000494,1232.1348
+CMP-6,D G Khan Cement Company Ltd,30.327399,70.538435,integrated,,Punjab,Pakistan,operating,2110000,0.0002223,469.053,0.0001235,260.585,0.0007695,1623.645,0.000494,1042.34
+CMP-7,D G Khan Cement Company Ltd,32.725581,72.816963,integrated,,Punjab,Pakistan,operating,2110000,0.0002223,469.053,0.0001235,260.585,0.0007695,1623.645,0.000494,1042.34
+CMP-8,D G Khan Cement Company Ltd,25.158018,66.784087,integrated,,Balochistan,Pakistan,operating,2840000,0.0002223,631.332,0.0001235,350.74,0.0007695,2185.38,0.000494,1402.96
+CMP-9,Dandot Cement Company Ltd,32.644464,72.976899,integrated,,Punjab,Pakistan,operating,504000,0.0002223,112.0392,0.0001235,62.244,0.0007695,387.828,0.000494,248.976
+CMP-10,Dewan Cement Ltd,33.856388,72.863033,integrated,,Khyber Pakhtunkhwa,Pakistan,operating,1390000,0.0002223,308.997,0.0001235,171.665,0.0007695,1069.605,0.000494,686.66
+CMP-11,Dewan Cement Ltd,24.909361,67.474854,integrated,,Sindh,Pakistan,operating,2080000,0.0002223,462.384,0.0001235,256.88,0.0007695,1600.56,0.000494,1027.52
+CMP-12,Fauji Cement Company Ltd,33.690512,72.713367,integrated,,Punjab,Pakistan,operating,3430000,0.0002223,762.489,0.0001235,423.605,0.0007695,2639.385,0.000494,1694.42
+CMP-13,Fecto Cement Ltd,33.693119,72.859164,integrated,,Islamabad Capital Territory,Pakistan,operating,900000,0.0002223,200.07,0.0001235,111.15,0.0007695,692.55,0.000494,444.6
+CMP-14,Flying Cement Co Ltd,32.574803,72.565983,integrated,,Punjab,Pakistan,operating,600000,0.0002223,133.38,0.0001235,74.1,0.0007695,461.7,0.000494,296.4
+CMP-15,Gharibwal Cement Ltd,32.726458,73.142329,integrated,,Punjab,Pakistan,operating,2450000,0.0002223,544.635,0.0001235,302.575,0.0007695,1885.275,0.000494,1210.3
+CMP-16,Cherat Cement Company Ltd,33.905264,71.91052,integrated,,Khyber Pakhtunkhwa,Pakistan,operating,4500000,0.0002223,1000.35,0.0001235,555.75,0.0007695,3462.75,0.000494,2223
+CMP-17,Kohat Cement Company Ltd,33.548053,71.549005,integrated,,Khyber Pakhtunkhwa,Pakistan,operating,2950000,0.0002223,655.785,0.0001235,364.325,0.0007695,2270.025,0.000494,1457.3
+CMP-18,Maple Leaf Cement Factory Ltd,32.907938,71.590321,integrated,,Punjab,Pakistan,operating,4380000,0.0002223,973.674,0.0001235,540.93,0.0007695,3370.41,0.000494,2163.72
+CMP-19,Lucky Cement Ltd,25.053071,67.494014,integrated,,Sindh,Pakistan,operating,8000000,0.0002223,1778.4,0.0001235,988,0.0007695,6156,0.000494,3952
+CMP-20,Dadabhoy Cement Industries Ltd,25.15328,67.672503,integrated,,Sindh,Pakistan,operating,1020000,0.0002223,226.746,0.0001235,125.97,0.0007695,784.89,0.000494,503.88
+CMP-21,Attock Cement Pakistan Ltd,25.139196,66.914996,integrated,,Balochistan,Pakistan,operating,3000000,0.0002223,666.9,0.0001235,370.5,0.0007695,2308.5,0.000494,1482
+CMP-22,Pioneer Cement Ltd,32.387991,72.14237,integrated,,Punjab,Pakistan,operating,1300000,0.0002223,288.99,0.0001235,160.55,0.0007695,1000.35,0.000494,642.2
+CMP-23,Power Cement Ltd,25.154011,67.703129,integrated,,Sindh,Pakistan,operating,600000,0.0002223,133.38,0.0001235,74.1,0.0007695,461.7,0.000494,296.4
+CMP-24,Rohri Cement Factory Pvt Ltd,27.669985,68.891452,integrated,,Sindh,Pakistan,operating,1800000,0.0002223,400.14,0.0001235,222.3,0.0007695,1385.1,0.000494,889.2
+CMP-25,Thatta Cement Company Ltd,24.648057,67.843569,integrated,,Sindh,Pakistan,operating,675000,0.0002223,150.0525,0.0001235,83.3625,0.0007695,519.4125,0.000494,333.45
+CMP-26,Zeal Pak Cement Factory Ltd,25.34692,68.396246,integrated,,Sindh,Pakistan,operating,576000,0.0002223,128.0448,0.0001235,71.136,0.0007695,443.232,0.000494,284.544
+CMP-27,N/A,24.44605,83.075826,integrated,,Uttar Pradesh,India,operating,1590000,0.0002223,353.457,0.0001235,196.365,0.0007695,1223.505,0.000494,785.46
+CMP-28,N/A,24.63924,83.101967,integrated,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMP-29,N/A,25.087704,82.902584,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMP-30,N/A,25.229553,81.781506,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMP-31,N/A,22.392435,87.015888,grinding,,West Bengal,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMP-32,N/A,27.960795,78.08159,grinding,,Uttar Pradesh,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0
+CMP-33,N/A,23.718837,86.954305,grinding,,West Bengal,India,operating,0,0.0002223,0,0.0001235,0,0.0007695,0,0.000494,0

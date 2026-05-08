@@ -119,21 +119,44 @@ class LiquidLocalReasoner:
                 "Liquid local reasoner requires Pillow to open crop/tile imagery."
             ) from exc
 
-        prompt = (
-            "Analyze this brick-kiln detector candidate. Return only JSON with keys: "
-            "visual_summary, risk_reasoning, compliance_risk, human_review_needed, "
-            "confidence_note. Do not claim regulatory certainty."
+        # System+user split aligns with the Liquid cookbook satellite-vlm pattern
+        # (examples/car-maker-identification/src/.../inference.py) and the VRSBench
+        # VQA training format (examples/satellite-vlm/prepare_vrsbench.py).
+        system_prompt = (
+            "You are an Earth-observation analyst reviewing a small crop from a "
+            "satellite tile. An onboard YOLO detector flagged this region as a "
+            "possible brick kiln. Assess the crop visually and reason about whether "
+            "it is credibly a brick-kiln structure (look for: rectangular kiln "
+            "ovens, tall chimneys, fired-clay color, repeated rectangular firing "
+            "lots, surrounding spoil heaps). Be specific about visual features. "
+            "Do not invent regulatory certainty or geographic context that is not "
+            "visible in the crop."
+        )
+        confidence_pct = int(round(max(0.0, min(1.0, detection.confidence)) * 100))
+        signals = ", ".join(detection.signals[:4]) or "no extra signals"
+        user_prompt = (
+            f"Detector confidence: {confidence_pct}%. Detector signals: {signals}. "
+            "Return ONLY a single JSON object with these exact keys, no prose:\n"
+            "{\n"
+            '  "credible_kiln":         true|false,\n'
+            '  "compliance_risk":       "low"|"medium"|"high",\n'
+            '  "human_review_needed":   true|false,\n'
+            '  "visual_summary":        "<one sentence describing the crop>",\n'
+            '  "risk_reasoning":        "<one sentence: why this is or is not a kiln>",\n'
+            '  "confidence_note":       "<caveats about image quality or scale>"\n'
+            "}"
         )
         try:
             with Image.open(evidence_path) as image:
                 conversation = [
+                    {"role": "system", "content": system_prompt},
                     {
                         "role": "user",
                         "content": [
                             {"type": "image", "image": image.convert("RGB")},
-                            {"type": "text", "text": prompt},
+                            {"type": "text", "text": user_prompt},
                         ],
-                    }
+                    },
                 ]
                 inputs = self.processor.apply_chat_template(
                     conversation,
@@ -144,7 +167,11 @@ class LiquidLocalReasoner:
                 )
                 if hasattr(self.model, "device"):
                     inputs = inputs.to(self.model.device)
-                outputs = self.model.generate(**inputs, max_new_tokens=256)
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=256,
+                    do_sample=False,  # deterministic for demo + JSON reliability
+                )
                 decoded = self.processor.batch_decode(outputs, skip_special_tokens=True)[0]
         except Exception as exc:
             raise LiquidReasonerError(f"Liquid local inference failed for {evidence_path}: {exc}") from exc

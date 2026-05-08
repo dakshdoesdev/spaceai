@@ -7,12 +7,13 @@ from pathlib import Path
 from kilnwatch.datasets.adapters.base import DatasetAdapter
 
 
-class ApadPakistanIgpAdapter(DatasetAdapter):
-    """Adapter for local APAD/Zenodo Pakistan IGP coordinate CSV exports.
+class ApadIgpAdapter(DatasetAdapter):
+    """Adapter for local APAD/Zenodo Indo-Gangetic Plain (IGP) coordinate CSV exports.
+    Handles Pakistan, India, and Bangladesh datasets.
 
     Expected input format:
         CSV with at least `id`, `lat`, and `lon`. Optional columns include
-        `type`, `state`, `schools1km`, `hosp1km`, `pop1km`, and emissions fields.
+        `type`, `state`, `country`, `schools1km`, `hosp1km`, `pop1km`, and emissions fields.
 
     Expected output format:
         KilnWatch manifest JSONL.
@@ -27,14 +28,14 @@ class ApadPakistanIgpAdapter(DatasetAdapter):
         proximity/emissions columns -> notes.
     """
 
-    name = "apad_pakistan_igp"
-    expected_input_format = "CSV with id, lat, lon, type/state/proximity/emissions columns"
+    name = "apad_igp"
+    expected_input_format = "CSV with id, lat, lon, type/state/country/proximity/emissions columns"
     geometry = "coordinates and labels"
     mapping_notes = "Coordinates become positive kiln records; bbox is unavailable."
 
     def convert(self, input_path: Path, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        with input_path.open("r", encoding="utf-8", newline="") as source, output_path.open(
+        with input_path.open("r", encoding="utf-8-sig", newline="") as source, output_path.open(
             "w", encoding="utf-8"
         ) as target:
             reader = csv.DictReader(source)
@@ -43,12 +44,15 @@ class ApadPakistanIgpAdapter(DatasetAdapter):
             if missing:
                 raise ValueError(f"missing required columns: {', '.join(sorted(missing))}")
             for row in reader:
+                country = row.get("country", "unknown").lower().replace(" ", "_")
+                source_val = f"apad_igp_{country}_local_csv"
+                tile_id = f"apad_igp_{country}_{row['id']}"
                 record = {
-                    "tile_id": f"apad_pakistan_igp_{row['id']}",
-                    "image_path": f"datasets/kilnwatch/images/external/apad_pakistan_igp_{row['id']}.png",
+                    "tile_id": tile_id,
+                    "image_path": f"datasets/kilnwatch/images/external/{tile_id}.png",
                     "lat": float(row["lat"]),
                     "lon": float(row["lon"]),
-                    "source": "apad_pakistan_igp_local_csv",
+                    "source": source_val,
                     "split": "external",
                     "label": row.get("type") or "brick_kiln",
                     "kiln_detected": True,
@@ -60,10 +64,9 @@ class ApadPakistanIgpAdapter(DatasetAdapter):
 
 
 def _notes_from_row(row: dict[str, str]) -> str:
-    parts = ["Converted from local APAD/Zenodo Pakistan IGP CSV; image tile not bundled."]
-    for field in ("state", "schools1km", "hosp1km", "pop1km"):
+    parts = ["Converted from local APAD/Zenodo IGP CSV; image tile not bundled."]
+    for field in ("state", "country", "schools1km", "hosp1km", "pop1km"):
         value = row.get(field)
         if value:
             parts.append(f"{field}={value}")
     return " ".join(parts)
-

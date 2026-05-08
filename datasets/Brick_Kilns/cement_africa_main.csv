@@ -1,0 +1,37 @@
+id,name,lat,lon,type, fuel,region,country,status,capacity_tonnes,emfpm10, pm10_t_yr,emfpm25,pm25_t_yr,emfso2,so2_t_yr,emfnox,nox_t_yr,source
+CMC-1,,-4.593023,12.048903,Integrated,,Kouilou,Congo,Operating,,,,,,,,,,
+CMC-2,Mindouli Cement Plant,-4.242355723,14.36285391,Integrated,,Pool,Congo,Operating,59289.61749,0.0002223,6.721841804,0.0001235,3.734356558,0.0007695,23.26791394,0.000494,14.93742623,https://climatetrace.org/data
+CMC-3,SONOCC Madingou Cement Plant,-4.289766016,13.85754004,Integrated,,Bouenza,Congo,Operating,25409.83607,0.0002223,0.971883105,0.0001235,0.539935059,0.0007695,3.364210749,0.000494,2.159740234,https://climatetrace.org/data
+CMC-4,Louvakou Cement Plant,-4.16500953,12.61534755,Integrated,,Niari,Congo,Operating,25409.83607,0.0002223,2.308117472,0.0001235,1.282287484,0.0007695,7.989637402,0.000494,5.129149937,https://climatetrace.org/data
+CMG-5,,5.704645,0.017442,Integrated,,Greater Accra Region,Ghana,Operating,,,,,,,,,,
+CMG-6,,5.621991,-0.014344,Grinding,,Greater Accra Region,Ghana,Operating,,,,,,,,,,
+CMG-7,,4.891983,-1.745828,Integrated,,n/a,Ghana,Operating,,,,,,,,,,
+CMG-8,,5.637128,0.007768,Grinding,,Greater Accra Region,Ghana,Operating,,,,,,,,,,
+CMG-9,,8.790301,-1.502071,Integrated,,Northern Region,Ghana,Operating,,,,,,,,,,
+CMG-10,,6.15335,1.179772,Grinding,,Volta Region,Ghana,Operating,,,,,,,,,,
+CMG-11,,4.885591,-1.876222,Integrated,,Western Region,Ghana,Operating,,,,,,,,,,
+CMN-12,,7.319348,6.365774,Integrated,,Edo,Nigeria,Operating,,,,,,,,,,
+CMN-13,,7.35638,6.401469,Integrated,,Edo,Nigeria,Operating,,,,,,,,,,
+CMN-14,,13.061804,5.171114,Integrated,,Sokoto,Nigeria,Operating,,,,,,,,,,
+CMN-15,,7.411613,8.975232,Integrated,,Benue,Nigeria,Operating,,,,,,,,,,
+CMN-16,,7.006077,3.047604,Integrated,,Ogun State,Nigeria,Operating,,,,,,,,,,
+CMN-17,,7.927327,6.425156,Integrated,,Kogi,Nigeria,Operating,,,,,,,,,,
+CMN-18,,10.929985,11.477114,Integrated,,Gombe,Nigeria,Operating,,,,,,,,,,
+CMN-19,,6.893522,3.205342,Integrated,,Ogun State,Nigeria,Operating,,,,,,,,,,
+CMN-20,,6.813933,3.621188,Integrated,,Ogun State,Nigeria,Operating,,,,,,,,,,
+CMN-21,,6.902791,3.207143,Integrated,,Ogun State,Nigeria,Operating,,,,,,,,,,
+CMN-22,,4.981631,8.325949,Grinding,,Cross River,Nigeria,Under Construction,,,,,,,,,,
+CMU-23,,0.291484,30.181853,Integrated,,Western Region,Uganda,Operating,,,,,,,,,,
+CMU-24,,0.751299,34.179319,Integrated,,Eastern Region,Uganda,Operating,,,,,,,,,,
+CMU-25,,0.660021,34.156213,Grinding,,Eastern Region,Uganda,Operating,,,,,,,,,,
+CMU-26,,0.386128,32.854014,Integrated,,Central Region,Uganda,Operating,,,,,,,,,,
+CMK-27,National Cement Mathatani Cement Plant,-1.495304922,37.05547107,Integrated,,Machakos County,Kenya,Operating,143989.071,0.0002223,24.2279231,0.0001235,13.45995728,0.0007695,83.86588764,0.000494,53.8398291,https://climatetrace.org/data
+CMK-28,National Kaloleni Cement Plant,-3.845540501,39.63399464,Integrated,,Kilifi County,Kenya,Operating,59289.61749,0.0002223,6.753474,0.0001235,3.75193,0.0007695,23.37741,0.000494,15.00772,https://climatetrace.org/data
+CMK-29,Mkomani Cement Plant,-3.736566215,39.84422543,Integrated,,Kilifi County,Kenya,Operating,84699.45355,0.0002223,15.18693773,0.0001235,8.437187629,0.0007695,52.57016908,0.000494,33.74875052,https://climatetrace.org/data
+CMK-30,EPAC Athi River Cement Plant,-1.452751806,36.96346217,Integrated,,Machakos County,Kenya,Operating,84699.45355,0.0002223,15.59026707,0.0001235,8.661259484,0.0007695,53.96630909,0.000494,34.64503794,https://climatetrace.org/data
+CMK-31,Bamburi Mombasa Cement Plant,-4.007344936,39.71637727,Integrated,,Mombasa County,Kenya,Operating,67759.56284,0.0002223,12.35033932,0.0001235,6.861299623,0.0007695,42.75117458,0.000494,27.44519849,https://climatetrace.org/data
+CMK-32,Lukala Cement Plant,-5.509052186,14.52597729,Integrated,,Kongo Central,Democratic Republic of the Congo,Operating,30491.80328,0.0002223,3.483197828,0.0001235,1.935109905,0.0007695,12.05722325,0.000494,7.740439618,https://climatetrace.org/data
+CMD-33,PPC Barnet Kimpese Cement Plant,-5.539104707,14.33594999,Integrated,,Kongo Central,Democratic Republic of the Congo,Operating,92322.40437,0.0002223,0.699550334,0.0001235,0.388639075,0.0007695,2.421520388,0.000494,1.554556298,https://climatetrace.org/data
+CMD-34,Kabimba Cement Plant,-5.556851306,29.33906789,Integrated,,Volta Region,Democratic Republic of the Congo,Operating,127049.1803,0.0002223,4.897375153,0.0001235,2.720763974,0.0007695,16.95245245,0.000494,10.88305589,https://climatetrace.org/data
+CMD-35,CimenKat Lubudi Cement Plant,-9.942315579,25.9606444,Integrated,,Katanga,Democratic Republic of the Congo,Operating,7368.852459,0.0002223,0.83542891,0.0001235,0.464127172,0.0007695,2.891869303,0.000494,1.856508688,https://climatetrace.org/data
+CMD-36,Nyumba Ya Akiba Cement Plant,-5.6312085,14.20497095,Integrated,,Kwilu,Democratic Republic of the Congo,,110109.2896,0.0002223,4.244391797,0.0001235,2.357995443,0.0007695,14.69212545,0.000494,9.431981772,https://climatetrace.org/data

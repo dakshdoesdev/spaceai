@@ -21,9 +21,9 @@ from kilnwatch.datasets.image_validation import (
 from kilnwatch.ingestion.simsat_client import SimSatClient, SimSatUnavailable
 
 
-DEFAULT_COORDINATES_CSV = Path("datasets/kilnwatch/coordinates/panipat_demo_coordinates.csv")
+DEFAULT_COORDINATES_CSV = Path("datasets/kilnwatch/coordinates/haryana_demo_coordinates.csv")
 DEFAULT_TILE_DIR = Path("data/raw_tiles")
-DEFAULT_MANIFEST = Path("datasets/kilnwatch/manifests/panipat_demo_manifest.jsonl")
+DEFAULT_MANIFEST = Path("datasets/kilnwatch/manifests/haryana_demo_manifest.jsonl")
 DEFAULT_SIMSAT_URL = "http://localhost:9005"
 
 REQUIRED_COLUMNS = {"tile_id", "lat", "lon", "region_name", "expected_label", "source", "notes"}
@@ -57,7 +57,7 @@ def read_coordinate_csv(path: Path) -> list[CoordinateRow]:
     if not path.exists():
         write_sample_coordinate_csv(path)
         raise FileNotFoundError(
-            f"Coordinate CSV not found: {path}. Wrote a sample template there; edit it with APAD/Panipat rows and rerun."
+            f"Coordinate CSV not found: {path}. Wrote a sample template there; edit it with Haryana/India rows and rerun."
         )
 
     with path.open("r", encoding="utf-8", newline="") as handle:
@@ -99,19 +99,19 @@ def write_sample_coordinate_csv(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     rows = [
         {
-            "tile_id": "panipat_positive_replace_001",
+            "tile_id": "haryana_positive_replace_001",
             "lat": "29.390900",
             "lon": "76.963500",
-            "region_name": "Panipat Haryana",
+            "region_name": "Haryana, India",
             "expected_label": "positive",
             "source": "apad_or_manual_local_csv",
             "notes": "Replace with a real APAD/manual kiln coordinate before claiming ground truth.",
         },
         {
-            "tile_id": "panipat_refinery_negative_001",
+            "tile_id": "haryana_industrial_negative_001",
             "lat": "29.432000",
             "lon": "76.917000",
-            "region_name": "Panipat Refinery industrial control",
+            "region_name": "Haryana industrial control",
             "expected_label": "negative",
             "source": "manual_negative_control",
             "notes": "Industrial false-positive control; verify no kiln in selected tile.",

@@ -1,0 +1,105 @@
+﻿id,name,lat,lon,type, fuel,region,country,status,capacity_tonnes,emfpm10, pm10_t_yr,emfpm25, pm25_t_yr,emfso2, so2_t_yr,emfnox, nox_t_yr
+PPB-1,Amber Super Paper Ltd,23.80788104,90.54548187,Paper,,Dhaka,Bangladesh,Operating,16093.74,0.000189,3.04171686,0.00012285,1.977115959,0.00043,6.9203082,0.00053,8.5296822
+PPB-2,Asia Paper and Board Mills Ltd,23.57903368,90.51213092,Paper,,Dhaka,Bangladesh,Operating,16093.74,0.000189,3.04171686,0.00012285,1.977115959,0.00043,6.9203082,0.00053,8.5296822
+PPB-3,Bangladesh Paper Mills Ltd,23.70363035,90.51373167,Paper,,Dhaka,Bangladesh,Operating,16093.74,0.000189,3.04171686,0.00012285,1.977115959,0.00043,6.9203082,0.00053,8.5296822
+PPB-4,BCIC Bangladesh Chemical Industries Corp.,23.7267506,90.4191763,Paper,,Dhaka,Bangladesh,Operating,33069.33,0.000189,6.25010337,0.00012285,4.062567191,0.00043,14.2198119,0.00053,17.5267449
+PPB-5,BPML Bashundhara Paper Mill Limited- Unit 1,23.61845384,90.61073186,pulp and paper,,Dhaka,Bangladesh,Operating,193455.63,0.0013,251.492319,0.000975,188.6192393,0.005,967.27815,0.0025,483.639075
+PPB-6,BPML Bashundhara Paper Mill Limited- Unit 2,23.61418535,90.6193602,pulp and paper,,Dhaka,Bangladesh,Operating,193455.63,0.0013,251.492319,0.000975,188.6192393,0.005,967.27815,0.0025,483.639075
+PPB-7,BPML Bashundhara Paper Mill Limited- Unit 3,23.57584222,90.64422299,pulp and paper,,Dhaka,Bangladesh,Operating,193455.63,0.0013,251.492319,0.000975,188.6192393,0.005,967.27815,0.0025,483.639075
+PPB-8,"Hashem Paper Mills Ltd, Zeysha Group",23.80363083,90.53658873,Paper,,Dhaka,Bangladesh,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPB-9,"Hussain Pulp, Paper and Board Mills Ltd",23.63274068,90.46939284,Paper and packaging,,Dhaka,Bangladesh,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPB-10,Khulna Newsprint Mills Ltd,22.85529565,89.55099846,Paper,,Khalispur,Bangladesh,Operating,55115.56,0.000189,10.41684084,0.00012285,6.770946546,0.00043,23.6996908,0.00053,29.2112468
+PPB-11,"Lipy Paper Mills Ltd, Lipy Group",23.70634033,90.55792858,Paper,,Dhaka,Bangladesh,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPB-12,"Magura Paper Mills Ltd, BDG-Magura Group",23.61567016,90.61192963,Paper,,Dhaka,Bangladesh,Operating,16534.66,0.000189,3.12505074,0.00012285,2.031282981,0.00043,7.1099038,0.00053,8.7633698
+PPB-13,NBPM North Bengal Paper Mills Ltd,24.07612556,89.04865103,Paper,,Paksey,Bangladesh,Operating,16534.66,0.000189,3.12505074,0.00012285,2.031282981,0.00043,7.1099038,0.00053,8.7633698
+PPB-14,"Pearl Paper & Board Mills Ltd, Magura Group",23.91844075,90.12938519,Paper,,Dhaka,Bangladesh,Operating,44092.45,0.000189,8.33347305,0.00012285,5.416757483,0.00043,18.9597535,0.00053,23.3689985
+PPB-15,Pioneer Paper & Board Mills Ltd,23.57650988,90.64400498,Paper,,Dhaka,Bangladesh,Operating,8851.55,0.000189,1.67294295,0.00012285,1.087412918,0.00043,3.8061665,0.00053,4.6913215
+PPB-16,Sadeque Paper & Board Mills Ltd,24.02300304,90.27228186,Paper,,Dhaka,Bangladesh,Operating,8046.87,0.000189,1.52085843,0.00012285,0.98855798,0.00043,3.4601541,0.00053,4.2648411
+PPB-17,Sonali Paper and Board Mills Ltd,23.71686303,90.50628353,Paper and packaging,,Dhaka,Bangladesh,Operating,18105.46,0.0013,23.537098,0.000975,17.6528235,0.005,90.5273,0.0025,45.26365
+PPB-18,Web Coats Ltd,23.66998835,90.29507972,Paper,,Dhaka,Bangladesh,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-1,"Abhishek Industries Limited, Trident Group",30.9136225,75.8170786,Paper,,Ludhiana,India,Operating,108000.00,0.000189,20.412,0.00012285,13.2678,0.00043,46.44,0.00053,57.24
+PPI-2,Agarwal Pulp and Paper Mills Ltd,29.4610536,77.6861916,Paper,,Muzaffar Nagar,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-3,BAHL Paper Mills Ltd,28.6349338,77.1792825,Pulp and Paper,,DELHI,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-4,"BAHL Paper Mills Ltd, Kashipur Plant",29.15395383,78.92952222,Paper,,Kashipur,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-5,Bharat Strawboard & Paper Mills (Private) Ltd,25.3920905,81.8671896,Paper,,Allahabad,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-6,"BILT Ballarpur Industries Ltd, Unit Shreegopal",30.1253913,77.2861791,Pulp and paper,,Yamunanagar,India,Operating,67000.00,0.0013,87.1,0.000975,65.325,0.005,335,0.0025,167.5
+PPI-7,BILT Ballarpur Industries Ltd,28.4795213,77.0834736,pulp and paper,,Gurgaon,India,Operating,,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-8,"Bindal Papers Limited, Muzaffarnagar Works",29.4713791,77.7524847,pulp and paper,,Muzaffar Nagar,India,Operating,,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-9,Chandpur Enterprises Ltd,29.1309316,78.3070162,Paper,,Bijnor,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-10,Cheema Papers Limited,27.5705886,80.0981869,Paper,,Naini Tal,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-11,Chemopulp Tissues Limited,28.7388465,77.2622616,Paper,,Ghaziabad,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-12,CPP Century Pulp & Paper,28.5395203,77.2892572,Paper,,Delhi,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-13,East India Paper & Board Mills,22.5493487,88.3575388,Paper and packaging,,Kolkata,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-14,Gateway Speciality Papers Limited,28.702227,77.173583,Paper,,Delhi,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-15,"Gateway Speciality Papers Limited, Kundli Mill",28.8072614,77.1404211,Paper,,Kundli,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-16,"Incite Homecare Products (P) Limited, Regional Office Noida",28.5803863,77.2442689,pulp and paper,,Noida,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-17,"ITC Limited, Registered Office",22.5512458,88.3491845,pulp and paper,,Kolkata,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-18,"Krishna Tissues Private Limited, Corporate Office",22.5902717,88.4041641,pulp and paper,,Kolkata,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-19,"Kuantum Papers Ltd, Corporate Office",30.7375403,76.7934951,pulp and paper,,Chandigarh,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-20,Hanuman Chromocoates Limited,22.5712655,88.3458665,Paper,,Kolkata,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-21,"ITC Limited, PSPC Manufacturing Tribeni Unit",23.0485138,88.2826103,Packaging,,Chandigarh,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-22,Khanna Paper Mills,30.3436212,76.8710151,Paper,,Ambala Cantt,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-23,"Krishna Tissues Private Limited, Burdwan Mill",23.3675867,87.8981188,Paper,,Burdwan,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-24,"Krishna Tissues Private Limited, Howrah Mill",22.4737841,88.018735,Paper and packaging,,Howrah,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-25,Mukerian Papers Ltd,30.8754888,75.8888152,Paper,,Ludhiana,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-26,"Mukerian Papers Ltd, Mukerian Mill",31.9280757,75.6288101,Paper,,Mukerian,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-27,Nikita Papers Limited,28.7467243,77.1517559,Paper,,Shamli,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-28,Orient Paper & Industries Ltd,22.570999,88.3516711,Paper,,Kolkata,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-29,Pamwi Tissues (Lessee Swil Ltd),30.7299223,76.8006191,Paper,,Chandigarh,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-30,Rishab Paper Mills Ltd,30.7283801,76.7706729,Paper,,Chandigarh,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-31,"Rishab Paper Mills Ltd, Banah Mill",31.0165902,76.3868797,Paper,,Banah,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-32,Rohtas Industries Ltd,28.632378,77.2409994,Paper,,Delhi,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-33,RP Paper Impex Pvt. Ltd,30.5855185,76.8749787,Paper,,Sahibzada Ajit Singh Nagar,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-34,RPML Rama Paper Mills Limited,29.5022083,78.2049759,Paper and packaging,,Kiratpur,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-35,Sakar International Pvt Ltd,28.5623371,77.2132621,Paper,,Delhi,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-36,"Sakar International Pvt Ltd, New Delhi Factory",28.795019,77.044496,Paper,,Delhi,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-37,Sangal Paper Ltd,29.1058152,77.9195156,Paper,,Mawana,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-38,Shamli Paper Mills Ltd,29.5218285,77.712598,Paper,,Shamli,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-39,Shivalik Cellulose of Hindustan Lever,28.8381644,78.2421812,Paper,,Gajraula,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-40,Shree Acids & Chemicals Ltd,28.7125187,77.1730944,Paper,,Delhi,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-41,"Shree Acids & Chemicals Ltd, Gajraula Mill",28.8386481,78.7733286,Paper,,Gajraula,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-42,Shree Bhawani Paper Mills Ltd,25.4601917,81.8454779,Paper,,Allahabad,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-43,"Shree Bhawani Paper Mills Ltd, Rae Bareli Mill",26.2212165,81.2589529,Paper,,Rae Bareli,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-44,Shree Jagdambe Paper Mills Ltd,29.5139323,75.0363827,Paper,,Sirsa,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-45,Shree Krishna Paper Mills & Ind. Ltd,28.6442998,77.2442405,Paper and packaging,,Delhi,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-46,"Shree Krishna Paper Mills & Ind. Ltd, Bansal Paper Mills",30.667842,76.844194,Paper,,Bahadurgarh,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-47,Shreyans Industries Limited,30.8820454,75.9495021,Paper,,Ludhiana,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-48,"Shreyans Industries Limited, Shree Rishabh Papers",31.030237,76.4620928,Paper,,Banah,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-49,"Shreyans Industries Limited, Shreyans Papers",30.6795612,75.8243427,Paper,,Ahmedgarh,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-50,Sikka Papers Ltd,29.5050113,77.3637748,Paper,,Shamli,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-51,Silverton Papers Ltd,29.4713791,77.7524847,Paper,,Muzaffarnagar,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-52,SPMCIL Security Printing of India Limited,28.6256874,77.2198801,Paper,,Delhi,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-53,Star Paper Mills Ltd,22.577148,88.3488211,Paper,,Kolkata,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-54,"Star Paper Mills Ltd, Saharanpur Mill",29.95746,77.5563293,Pulp and paper,,Saharanpur,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-55,Straw Board Manufacturing Co Ltd,29.7163758,77.84986,Paper and packaging,,Saharanpur,India,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPI-56,Supreme Paper Mills Ltd,22.5408685,88.3709194,Paper,,Kolkata,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-57,"Supreme Paper Mills Ltd, Chakdaha Mill",23.0849296,88.4972892,Paper,,Chak Daha,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-58,Three Star Paper Mills Ltd,28.555638,77.554226,Paper,,Tehsil Dadri,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-59,Tirupati Balaji Fibres Limited,29.4676905,77.7115687,Paper,,Muzaffar Nagar,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPI-60,Upper India Couper Paper Mills Co Ltd,26.8466937,80.946166,Paper,,Lucknow,India,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPP-1,Alkaram Paper Mills Pvt. Ltd,31.3640634,74.18313,Paper,,Lahore,Pakistan,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPP-2,Allied Paper,25.01983262,67.11235007,Pulp and paper,,Thatta,Pakistan,Operating,9000.00,0.0013,11.7,0.000975,8.775,0.005,45,0.0025,22.5
+PPP-3,Al-Quresh Board Mills Ltd,31.44702014,74.32221437,Paper and packaging,,Lahore,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-4,"Atas Paper (Pvt) Ltd, A company of Sayid Paper Group",31.66143276,74.14548872,Paper,,Sheikhupura,Pakistan,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPP-5,"Bin Qasim Packages Ltd, Karachi Corrugating Unit",24.84638983,67.17163102,Paper and packaging,,Karachi,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-6,Bulleh Shah Packaging Pvt. Limited,31.2145509,74.1188246,Paper and packaging,,Kasur,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-7,"Century Paper & Board Mills Limited, Board and Paper Mill",30.0456602,72.0585955,pulp and paper,,Bhai Pheru,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-8,Century Paper & Board Mills Limited,31.20623443,73.96364187,Paper and packaging,,Kasur,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-9,Empire paper and board Mill,31.6286705,74.18757298,Paper and packaging,,Lahore,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-10,"Faruki Pulp Mills Ltd, Sargodha Mill",32.0870926,72.6584526,Pulp,,Sargodha,Pakistan,Operating,68000.00,0.0013,88.4,0.000975,66.3,0.005,340,0.0025,170
+PPP-11,Fazal Paper Mill,30.87556679,73.42092147,Paper and packaging,,Okara,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-12,Firdaus Board Mills (Pvt) Ltd,32.1367859,74.1932648,Paper,,Gujranwala,Pakistan,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPP-13,"Flying Kraft Paper Mills Ltd, A company of Flying Group of Companies",34.1681814,71.7503855,Pulp and paper,,Charsadda,Pakistan,Operating,66000.00,0.0013,85.8,0.000975,64.35,0.005,330,0.0025,165
+PPP-14,"Flying Paper Industries Ltd, A company of Flying Group of Companies",31.5247931,74.3225608, ,,Lahore,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-15,Jubilee Paper Board Mills Limited,31.9894881,74.2195526,Pulp and paper and packaging,,Kamoke,Pakistan,Operating,10000.00,0.0013,13,0.000975,9.75,0.005,50,0.0025,25
+PPP-16,Karachi Paper and Board Mills,24.84333996,67.15272107,Paper,,Karachi,Pakistan,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPP-17,Lucky Paper Mill,25.35425221,68.27508835,Paper and packaging,,Jamshoro,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-18,Malik Board and Paper Industries (Pvt) Ltd,31.4871648,74.3470706,Paper and packaging,,Lahore,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-19,Mandiali Paper Mills (Pvt) Ltd,31.66047723,74.14897416,Pulp and paper,,Sheikhupura,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-20,Orient Straw Board & Paper Mills Ltd,24.8576754,67.0030115,Pulp and paper,,Karachi,Pakistan,Operating,7500.00,0.0013,9.75,0.000975,7.3125,0.005,37.5,0.0025,18.75
+PPP-21,Packages Ltd,31.46950794,74.34984109,Pulp and paper and packaging,,Lahore,Pakistan,Operating,94000.00,0.0013,122.2,0.000975,91.65,0.005,470,0.0025,235
+PPP-22,Pakistan Paper Products,24.90031168,66.99122894,Packaging,,Karachi,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-23,Paper International Ltd,34.0057866,71.9296662,pulp and paper,,Nowshera,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-24,Pioneer Board,31.39627575,74.1458102,Packaging,,Lahore,Pakistan,Operating,0.00,0.0013,0,0.000975,0,0.005,0,0.0025,0
+PPP-25,Sultan Paper Board Mills (Pvt) Ltd,32.0757408,74.1969753,Paper,,Gujranwala,Pakistan,Operating,0.00,0.000189,0,0.00012285,0,0.00043,0,0.00053,0
+PPP-26,"Zaman Paper & Board Mills Private Limited, A company of Flying Group of Companies",31.67629381,74.09331203,Pulp and paper,,Sheikhupura,Pakistan,Operating,18000.00,0.0013,23.4,0.000975,17.55,0.005,90,0.0025,45

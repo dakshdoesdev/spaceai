@@ -66,6 +66,28 @@ class GroundStationTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["tile_id"], "b")
 
+    def test_alert_rows_use_orbital_pass_triage_label(self):
+        """The dashboard sources its decision from the new triage_decision field."""
+        payload = {
+            "tile_id": "live-1",
+            "event": "alert",
+            "action": "TRANSMIT_ALERT",
+            "triage_decision": "CROP_OR_REVIEW",
+            "compliance_risk": "medium",
+            "confidence": 0.41,
+        }
+        event = {
+            "tile_id": "live-1",
+            "action": "TRANSMIT_ALERT",
+            "triage_decision": "CROP_OR_REVIEW",
+            "compliance_risk": "medium",
+            "confidence": 0.41,
+        }
+        rows = received_alert_rows([payload], [event])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["decision"], "CROP_OR_REVIEW")
+        self.assertEqual(rows[0]["risk"], "medium")
+
     def test_review_payloads_only_include_image_allowed_decisions(self):
         payloads = safe_review_payloads(
             [
@@ -166,6 +188,17 @@ class GroundStationTests(unittest.TestCase):
         self.assertIs(baseline.truth_fields["simulated"], True)
         self.assertEqual(fallback.detector_label, "FALLBACK USED")
         self.assertIs(fallback.truth_fields["fallback_used"], True)
+
+    def test_proof_status_does_not_call_mixed_detector_records_strict_real(self):
+        status = proof_status_summary(
+            [
+                {"detector_mode": "yolo", "detector_is_real": True, "simulated": False},
+                {"detector_mode": "baseline", "detector_is_real": False, "simulated": True},
+            ],
+            [],
+        )
+
+        self.assertEqual(status.detector_label, "MIXED DETECTOR METADATA")
 
     def test_proof_status_reports_sample_data(self):
         status = proof_status_summary([{"sample_demo_data": True}], [], sample_data=True)

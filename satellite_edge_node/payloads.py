@@ -10,9 +10,87 @@ from typing import Any
 
 from .baseline_detector import DetectionResult
 from .liquid_vlm_reasoner import VlmReasoning
+from kilnwatch.triage import TriageDecision, compute_triage
 
 
 ALERT_RISKS = {"medium", "high"}
+_RISK_BAND_TO_SCORE = {"high": 0.85, "medium": 0.55, "low": 0.2}
+
+
+# Transmission action taken on the satellite based on the 4-tier triage decision.
+# These names appear in payload `action`, telemetry `action`, and dashboard rows.
+TRANSMIT_NONE = "DROP_RAW_TILE"               # IGNORE: telemetry only, no payload
+TRANSMIT_JSON_ONLY = "TRANSMIT_JSON_ONLY"     # JSON_ALERT_ONLY: compact metadata, no crop
+TRANSMIT_JSON_AND_CROP = "TRANSMIT_ALERT"     # CROP_OR_REVIEW: JSON + crop PNG (legacy name)
+TRANSMIT_FULL_TILE = "TRANSMIT_FULL_TILE"     # FULL_DOWNLINK: JSON + crop + raw tile copy
+
+_DECISION_TO_ACTION = {
+    "IGNORE": TRANSMIT_NONE,
+    "JSON_ALERT_ONLY": TRANSMIT_JSON_ONLY,
+    "CROP_OR_REVIEW": TRANSMIT_JSON_AND_CROP,
+    "FULL_DOWNLINK": TRANSMIT_FULL_TILE,
+}
+
+# Tiers that produce a JSON payload (anything other than IGNORE).
+_TRANSMITTING_DECISIONS = {"JSON_ALERT_ONLY", "CROP_OR_REVIEW", "FULL_DOWNLINK"}
+# Tiers that need a crop artifact attached.
+_CROP_REQUIRED_DECISIONS = {"CROP_OR_REVIEW", "FULL_DOWNLINK"}
+
+
+def triage_label(
+    detection: DetectionResult,
+    vlm_reasoning: VlmReasoning | None,
+    *,
+    min_confidence: float = 0.25,
+) -> dict[str, Any]:
+    """Compute the 4-tier transmission priority that drives the satellite gate.
+
+    Decision is derived from kiln_detected + detector confidence + risk band (Liquid's
+    band when available, else the detector's own band). `min_confidence` should match
+    the detector's gating threshold so the IGNORE band is consistent with the detector's
+    own filtering.
+    """
+    risk_band = (
+        vlm_reasoning.compliance_risk
+        if vlm_reasoning is not None and vlm_reasoning.compliance_risk in _RISK_BAND_TO_SCORE
+        else detection.compliance_risk
+    )
+    risk_score = _RISK_BAND_TO_SCORE.get(risk_band, 0.0)
+    prediction = {
+        "tile_id": detection.tile_id,
+        "kiln_detected": detection.kiln_detected,
+        "confidence": detection.confidence,
+        "compliance_risk_score": risk_score,
+        "risk_factors": list(detection.signals),
+    }
+    triage = compute_triage(prediction, min_confidence=min_confidence)
+    return {
+        "decision": str(triage.decision),
+        "reason": triage.reason,
+        "risk_band_used": risk_band,
+        "risk_score_used": risk_score,
+        "driven_by": "liquid+yolo" if vlm_reasoning is not None else "yolo-only",
+    }
+
+
+def transmission_action_for(decision: str) -> str:
+    """Map a TriageDecision string to the on-satellite transmission action."""
+    return _DECISION_TO_ACTION.get(decision, TRANSMIT_NONE)
+
+
+def should_transmit_triage(decision: str) -> bool:
+    """True if the triage decision produces any downlink at all."""
+    return decision in _TRANSMITTING_DECISIONS
+
+
+def crop_required_for(decision: str) -> bool:
+    """True if the triage decision requires a crop artifact alongside the JSON."""
+    return decision in _CROP_REQUIRED_DECISIONS
+
+
+def full_tile_required_for(decision: str) -> bool:
+    """True if the triage decision sends the full source tile down the wire."""
+    return decision == "FULL_DOWNLINK"
 
 
 @dataclass(frozen=True)
@@ -22,8 +100,25 @@ class CropArtifact:
     error: str | None = None
 
 
-def generate_crop_file(tile_path: Path, detection: DetectionResult, crops_dir: Path) -> CropArtifact:
-    if not should_transmit_alert(detection) or not detection.bbox:
+def generate_crop_file(
+    tile_path: Path,
+    detection: DetectionResult,
+    crops_dir: Path,
+    *,
+    triage_decision: str | None = None,
+) -> CropArtifact:
+    """Generate a bbox crop iff the triage decision needs one.
+
+    When `triage_decision` is provided, the gate is the four-tier triage. When it is
+    omitted, fall back to the legacy binary `should_transmit_alert` for backward
+    compatibility with older callers.
+    """
+    needs_crop = (
+        crop_required_for(triage_decision)
+        if triage_decision is not None
+        else should_transmit_alert(detection)
+    )
+    if not needs_crop or not detection.bbox:
         return CropArtifact(path=None, size_bytes=0)
     try:
         from PIL import Image, UnidentifiedImageError
@@ -45,14 +140,51 @@ def generate_crop_file(tile_path: Path, detection: DetectionResult, crops_dir: P
         return CropArtifact(path=None, size_bytes=0, error=f"crop generation failed for {tile_path}: {exc}")
 
 
+@dataclass(frozen=True)
+class FullTileArtifact:
+    """Bytes-on-disk record for a FULL_DOWNLINK source-tile copy."""
+
+    path: Path | None
+    size_bytes: int
+    error: str | None = None
+
+
+def copy_full_tile(
+    tile_path: Path,
+    tile_id: str,
+    full_tiles_dir: Path,
+    *,
+    triage_decision: str | None,
+) -> FullTileArtifact:
+    """Materialize the FULL_DOWNLINK 'send the whole tile' semantics on disk."""
+    if not full_tile_required_for(triage_decision or ""):
+        return FullTileArtifact(path=None, size_bytes=0)
+    try:
+        from shutil import copyfile
+
+        full_tiles_dir.mkdir(parents=True, exist_ok=True)
+        suffix = tile_path.suffix or ".bin"
+        target = full_tiles_dir / f"{tile_id}_full{suffix}"
+        copyfile(tile_path, target)
+        return FullTileArtifact(path=target, size_bytes=target.stat().st_size)
+    except OSError as exc:
+        return FullTileArtifact(path=None, size_bytes=0, error=f"full-tile copy failed for {tile_path}: {exc}")
+
+
 def should_transmit_alert(detection: DetectionResult) -> bool:
+    """Legacy binary gate kept for backward compatibility.
+
+    The runtime gate is now the 4-tier triage in `triage_label()` →
+    `should_transmit_triage()`. This binary helper still answers the old question
+    (medium/high risk + kiln) and is used by older payload helpers.
+    """
     return detection.kiln_detected and detection.compliance_risk in ALERT_RISKS
 
 
 def action_for_detection(detection: DetectionResult) -> str:
     if should_transmit_alert(detection):
-        return "TRANSMIT_ALERT"
-    return "DROP_RAW_TILE"
+        return TRANSMIT_JSON_AND_CROP
+    return TRANSMIT_NONE
 
 
 def build_transmission_payload(
@@ -60,34 +192,63 @@ def build_transmission_payload(
     tile_path: Path,
     crop_artifact: CropArtifact | None = None,
     vlm_reasoning: VlmReasoning | None = None,
+    *,
+    triage_min_confidence: float = 0.25,
+    full_tile_artifact: FullTileArtifact | None = None,
 ) -> dict[str, Any]:
     truth = _truth_metadata(detection)
-    if not should_transmit_alert(detection):
+    triage = triage_label(detection, vlm_reasoning, min_confidence=triage_min_confidence)
+    decision = triage["decision"]
+    action = transmission_action_for(decision)
+
+    # IGNORE — drop, no payload (this branch is normally not reached because
+    # the orbital-pass loop short-circuits IGNORE before constructing a payload,
+    # but kept here for callers that still build payloads for dropped tiles).
+    if not should_transmit_triage(decision):
         payload = {
             "event": "dropped",
             "tile_id": detection.tile_id,
-            "action": "DROP_RAW_TILE",
+            "action": action,
+            "triage_decision": decision,
+            "triage": triage,
             **truth,
         }
         _attach_vlm_reasoning(payload, vlm_reasoning)
         return payload
 
+    # JSON_ALERT_ONLY / CROP_OR_REVIEW / FULL_DOWNLINK — build alert payload.
     crop_ref = str(crop_artifact.path) if crop_artifact and crop_artifact.path else None
     crop_error = crop_artifact.error if crop_artifact else None
-    payload = {
+    full_tile_ref = (
+        str(full_tile_artifact.path)
+        if full_tile_artifact and full_tile_artifact.path
+        else None
+    )
+    full_tile_error = full_tile_artifact.error if full_tile_artifact else None
+
+    payload: dict[str, Any] = {
         "event": "alert",
         "tile_id": detection.tile_id,
         "source_tile_name": tile_path.name,
-        "action": action_for_detection(detection),
+        "action": action,
+        "triage_decision": decision,
+        "triage": triage,
         "coordinates": detection.coordinates,
         "confidence": detection.confidence,
         "compliance_risk": detection.compliance_risk,
         "bbox": detection.bbox,
-        "crop_ref": crop_ref,
-        "crop_error": crop_error,
         "signals": detection.signals,
         **truth,
     }
+    # Attach crop only when this tier carries crop evidence.
+    if crop_required_for(decision):
+        payload["crop_ref"] = crop_ref
+        payload["crop_error"] = crop_error
+    # Attach full-tile reference only on FULL_DOWNLINK.
+    if full_tile_required_for(decision):
+        payload["full_tile_ref"] = full_tile_ref
+        payload["full_tile_error"] = full_tile_error
+
     _attach_vlm_reasoning(payload, vlm_reasoning)
     return payload
 
@@ -99,11 +260,13 @@ def attach_byte_accounting(
     json_payload_bytes: int,
     crop_payload_bytes: int,
     transmitted_payload_bytes: int,
+    full_tile_payload_bytes: int = 0,
 ) -> None:
     payload["byte_accounting"] = {
         "original_payload_bytes": original_payload_bytes,
         "json_payload_bytes": json_payload_bytes,
         "crop_payload_bytes": crop_payload_bytes,
+        "full_tile_payload_bytes": full_tile_payload_bytes,
         "transmitted_payload_bytes": transmitted_payload_bytes,
         "bandwidth_saved_bytes": bandwidth_saved_bytes(original_payload_bytes, transmitted_payload_bytes),
     }
@@ -138,9 +301,16 @@ def telemetry_record(
     crop_payload_bytes: int,
     crop_path: Path | None,
     crop_error: str | None,
-    output_path: Path,
+    output_path: Path | None,
     vlm_reasoning: VlmReasoning | None = None,
+    triage_min_confidence: float = 0.25,
+    full_tile_payload_bytes: int = 0,
+    full_tile_path: Path | None = None,
+    full_tile_error: str | None = None,
 ) -> dict[str, Any]:
+    triage = triage_label(detection, vlm_reasoning, min_confidence=triage_min_confidence)
+    decision = triage["decision"]
+    action = transmission_action_for(decision)
     record = {
         "tile_id": detection.tile_id,
         "tile_file": str(tile_path),
@@ -154,16 +324,21 @@ def telemetry_record(
         "original_payload_bytes": original_payload_bytes,
         "json_payload_bytes": json_payload_bytes,
         "crop_payload_bytes": crop_payload_bytes,
+        "full_tile_payload_bytes": full_tile_payload_bytes,
         "transmitted_payload_bytes": transmitted_payload_bytes,
         "bandwidth_saved_bytes": bandwidth_saved_bytes(original_payload_bytes, transmitted_payload_bytes),
         "compression_ratio": compression_ratio(original_payload_bytes, transmitted_payload_bytes),
-        "action": action_for_detection(detection),
+        "action": action,
+        "triage_decision": decision,
+        "triage": triage,
         "kiln_detected": detection.kiln_detected,
         "confidence": detection.confidence,
         "compliance_risk": detection.compliance_risk,
-        "output_path": str(output_path),
+        "output_path": str(output_path) if output_path else None,
         "crop_path": str(crop_path) if crop_path else None,
         "crop_error": crop_error,
+        "full_tile_path": str(full_tile_path) if full_tile_path else None,
+        "full_tile_error": full_tile_error,
         "detection": asdict(detection),
     }
     _attach_vlm_reasoning(record, vlm_reasoning)

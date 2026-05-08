@@ -1,0 +1,10 @@
+id,name,lat,lon,type,fuel,region,country,status,capacity_tonnes,emfpm10,pm10_t_yr,emfpm25,pm25_t_yr,emfso2,so2_t_yr,emfnox,nox_t_yr,source
+SPG-1,,5.691421,-0.001024,,,Greater Accra Region,Ghana,Operating,,,,,,,,,,
+SPN-1,,11.95501,8.501672,Mini-Mill,,Kano,Nigeria,Operating,0.1,0.00381,,0.00251,,0.00144,,0.00047,,
+SPN-2,,5.481711,5.769321,Mini-Mill,,Delta,Nigeria,Operating,1.3,0.00381,,0.00251,,0.00144,,0.00047,,
+SPN-3,,7.511336,6.689364,,,Kogi,Nigeria,Operating,,0.00381,,0.00251,,0.00144,,0.00047,,
+SPN-4,,6.474019,7.574896,,,Enugu,Nigeria,Operating,,0.00381,,0.00251,,0.00144,,0.00047,,
+SPN-5,,6.629595,3.347138,,,Lagos,Nigeria,Operating,,0.00381,,0.00251,,0.00144,,0.00047,,
+SPN-6,,6.794399,3.619435,,,Ogun State,Nigeria,Operating,,0.00381,,0.00251,,0.00144,,0.00047,,
+SPU-7,,0.342055,32.700784,,,Central Region,Uganda,Operating,,0.00381,,0.00251,,0.00144,,0.00047,,
+SPK-1,Devki Steel Mills Kwale plant,-3.77734,39.279963,,,Machakos County,Kenya,Operating,0.45,0.00381,145.2172131,0.00251,95.66803279,0.00144,54.8852459,0.00047,17.91393443,https://climatetrace.org/data

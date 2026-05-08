@@ -1,0 +1,29 @@
+﻿id,name,lat,lon,type, fuel,region,country,status,capacities,capacity_power,prod_kw,emfpm10, pm10_t_yr,emfpm25,pm25_t_yr,emfso2,so2_t_yr,emfnox,nox_t_yr,source
+CN-1,Gboko Cement power station,7.411,8.974,,coal,Benue,Nigeria,operating,38.5,38,332880000,0.00037,6.15828,0.00019,3.16236,0.0072,119.8368,0.0043,71.5692,GEM
+CN-2,Ibese Cement power station,7.004,3.048,,coal,Ogun,Nigeria,operating,"37,37,37",111,972360000,0.00037,17.98866,0.00019,9.23742,0.0072,350.0496,0.0043,209.0574,GEM
+CN-3,Okpella Cement power station,7.344217,6.462388,,coal,Edo,Nigeria,operating,"30,30",60,525600000,0.00037,9.7236,0.00019,4.9932,0.0072,189.216,0.0043,113.004,GEM
+CN-4,Obajana Cement power station,7.926,6.423,,coal,Kogi,Nigeria,operating,"45,45,45",135,1182600000,0.00037,21.8781,0.00019,11.2347,0.0072,425.736,0.0043,254.259,GEM
+CN-5,Ugboba power station,6.421924,6.460065,,lignite,Delta,Nigeria,permitted,600,600,5256000000,0.00037,97.236,0.00019,49.932,0.0072,1892.16,0.0043,1130.04,GEM
+CN-6,Egbin Thermal Power Station,6.5661818,3.5946767,,,,Nigeria,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CN-7,NIPP Gbarain-Ubie Power Station,5.0310479,6.3015074,,,,Nigeria,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CN-8,Azura Edo IPP,6.4110031,5.6803898,,,,Nigeria,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CN-9,Egbema Power Plant Umuezi Mmahu,5.5656073,6.738329,,,,Nigeria,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CN-14,Shiroro Power Station,9.9731206,6.8343434,,,,Nigeria,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CN-17,Resident Cement Gwana power station,9.630984,10.818145,,unknown,Bauchi,Nigeria,announced,100,100,876000000,0.00037,16.206,0.00019,8.322,0.0072,315.36,0.0043,188.34,GEM
+CN-18,DANGOTE BENUE CEMENT,7.4108,8.9739,,,,Nigeria,operating,43.9,43.9,384564000,0.00037,7.114434,0.00019,3.653358,0.0072,138.44304,0.0043,82.68126,Climate Trace
+CU-2,Mpanga Power Station,0.0664008,30.3213429,,,,Uganda,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CU-13,Osukuru Thermal Power Station,0.6321157,34.1583296,,,,Uganda,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CU-14,Tororo Thermal Power Station,0.6372205,34.1166619,,,,Uganda,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CU-15,Kiira Power Station,0.4502929,33.185576,,,,Uganda,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CU-16,Lugazi Thermal Power Station,0.3798548,32.9450197,,,,Uganda,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-1,Sunon-Asogli Power Limited,5.6788484,0.0467972,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-2,Kpone Thermal Power Station,5.7360445,0.0090934,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-3,Tema Thermal 1 Power Plant (TT1PP),5.6747055,0.011861,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-4,Amandi Energy power plant,4.9687311,-1.6664434,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-5,Cenpower Generation Company Limited,5.6808455,0.0405072,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-7,Kpone Independent Power Plant,5.6815315,0.0409771,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-8,Ameri Power Plant,4.9742907,-1.6595719,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-10,GPGC Power Plant,5.6980491,0.0229239,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CG-14,Bridge Power Project,5.6773749,0.0184963,,,,Ghana,,,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,
+CS-1,Gallen Cement power station,14.796229,-17.039687,,unknown,Dakar,Senegal,operating,30,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,GEM
+CS-2,Sendou power station,14.686988,-17.213926,,unknown,Dakar,Senegal,operating,125,,0,0.00037,0,0.00019,0,0.0072,0,0.0043,0,GEM

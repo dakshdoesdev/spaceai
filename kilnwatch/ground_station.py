@@ -355,8 +355,14 @@ def _detector_label(items: list[dict[str, Any]], *, sample_data: bool) -> str:
     if any(bool(item.get("fallback_used")) for item in items):
         return "FALLBACK USED"
     modes = detector_modes([], items)
-    if any("yolo" in mode for mode in modes) and any(bool(item.get("detector_is_real")) for item in items):
+    real_flags = [bool(item.get("detector_is_real")) for item in items if item.get("detector_is_real") is not None]
+    simulated_flags = [bool(item.get("simulated")) for item in items if item.get("simulated") is not None]
+    has_yolo = any("yolo" in mode for mode in modes)
+    all_modes_are_yolo = bool(modes) and all("yolo" in mode for mode in modes)
+    if has_yolo and all_modes_are_yolo and real_flags and all(real_flags) and not any(simulated_flags):
         return "STRICT YOLO REAL"
+    if has_yolo and any(real_flags):
+        return "MIXED DETECTOR METADATA"
     if any(bool(item.get("simulated")) for item in items) or any(
         "baseline" in mode or "placeholder" in mode for mode in modes
     ):

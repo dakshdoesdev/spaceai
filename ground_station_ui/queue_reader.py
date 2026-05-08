@@ -40,7 +40,10 @@ def summarize_telemetry(records: list[dict[str, Any]]) -> dict[str, float | int]
     transmitted = sum(int(record.get("transmitted_payload_bytes", 0)) for record in records)
     saved = max(0, original - transmitted)
     compression_ratio = float("inf") if transmitted == 0 and original > 0 else (original / transmitted if transmitted else 1.0)
-    alert_count = sum(1 for record in records if record.get("action") == "TRANSMIT_ALERT")
+    # An "alert" here is any tile that produced a downlinked payload — JSON-only,
+    # JSON+crop, or full-tile downlink. Anything except the IGNORE / DROP_RAW_TILE branch.
+    transmitting_actions = {"TRANSMIT_ALERT", "TRANSMIT_JSON_ONLY", "TRANSMIT_FULL_TILE"}
+    alert_count = sum(1 for record in records if record.get("action") in transmitting_actions)
 
     return {
         "processed_tiles": len(records),
