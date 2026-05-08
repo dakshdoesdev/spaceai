@@ -1,6 +1,6 @@
 KILNWATCH_PLACEHOLDER_TILE
-tile_id=panipat_settlement_negative_001
-lat=29.375000
-lon=76.945000
+tile_id=haryana_industrial_negative_001
+lat=29.432000
+lon=76.917000
 expected_label=negative
 This is not satellite imagery. Replace with a real SimSat/Sentinel tile.

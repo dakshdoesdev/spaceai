@@ -11,10 +11,9 @@ class Region:
     longitude: float
 
 
-PANIPAT = Region(
-    slug="panipat_haryana",
-    name="Panipat, Haryana, India",
+HARYANA_INDIA = Region(
+    slug="haryana_india",
+    name="Haryana, India",
     latitude=29.3909,
     longitude=76.9635,
 )
-

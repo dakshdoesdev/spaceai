@@ -6,7 +6,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from kilnwatch.ingestion.dataset import write_smoke_report, write_tile_dataset
-from kilnwatch.ingestion.regions import PANIPAT
+from kilnwatch.ingestion.regions import HARYANA_INDIA
 from kilnwatch.ingestion.simsat_client import (
     DEFAULT_POSITION_ENDPOINTS,
     DEFAULT_SENTINEL_ENDPOINTS,
@@ -16,7 +16,7 @@ from kilnwatch.ingestion.simsat_client import (
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Fetch one Panipat Sentinel-2 tile from local SimSat.")
+    parser = argparse.ArgumentParser(description="Fetch one Haryana, India Sentinel-style tile from local SimSat.")
     parser.add_argument("--base-url", default="http://localhost:9005")
     parser.add_argument("--dataset-root", default="data")
     parser.add_argument("--timeout-seconds", type=float, default=10.0)
@@ -45,8 +45,8 @@ def main() -> int:
 
     try:
         response = client.fetch_sentinel_tile(
-            latitude=PANIPAT.latitude,
-            longitude=PANIPAT.longitude,
+            latitude=HARYANA_INDIA.latitude,
+            longitude=HARYANA_INDIA.longitude,
             width=args.width,
             height=args.height,
             endpoints=image_endpoints,
@@ -56,7 +56,7 @@ def main() -> int:
         print(f"SimSat responded, but no Sentinel-2 image endpoint matched. Wrote fallback smoke report: {report}")
         return 0
 
-    record = write_tile_dataset(response, PANIPAT, dataset_root)
+    record = write_tile_dataset(response, HARYANA_INDIA, dataset_root)
     print("Wrote tile metadata:")
     print(json.dumps(asdict(record), indent=2))
     return 0
@@ -64,4 +64,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

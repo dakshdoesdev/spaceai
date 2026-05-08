@@ -1,0 +1,6 @@
+expected_label,lat,lon,notes,region_name,source,tile_id
+positive,29.390900,76.963500,"Replace with a real APAD/manual kiln coordinate before claiming ground truth.","Haryana, India","apad_or_manual_local_csv","haryana_positive_replace_001"
+negative,29.432000,76.917000,"Industrial false-positive control; verify no kiln in selected tile.","Haryana industrial control","manual_negative_control","haryana_industrial_negative_001"
+negative,29.410000,76.990000,"Agricultural fields negative control; verify no kiln in selected tile.","Haryana agricultural control","manual_negative_control","haryana_ag_fields_negative_001"
+negative,29.455000,76.875000,"Warehouse/construction/bare-soil hard negative; verify no kiln in selected tile.","Haryana warehouse construction control","manual_negative_control","haryana_warehouse_negative_001"
+negative,29.375000,76.945000,"Settlement-like area without visible kiln; verify no kiln in selected tile.","Haryana settlement control","manual_negative_control","haryana_settlement_negative_001"

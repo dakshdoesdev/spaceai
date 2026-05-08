@@ -11,8 +11,19 @@ import shutil
 from .baseline_detector import is_tile_file
 from .detectors import Detector, build_detector_with_fallback
 from .liquid_vlm_reasoner import LiquidReasonerError, Reasoner, build_reasoner
-from .payloads import attach_byte_accounting, build_transmission_payload, encode_payload, generate_crop_file, telemetry_record
+from .payloads import (
+    attach_byte_accounting,
+    build_transmission_payload,
+    encode_payload,
+    generate_crop_file,
+    should_transmit_alert,
+    telemetry_record,
+)
 from .yolo_detector import DEFAULT_MODEL_PATH, YoloDetectorError
+
+
+class RequiredCropUnavailable(RuntimeError):
+    pass
 
 
 def discover_tiles(raw_tiles_dir: Path) -> list[Path]:
@@ -31,6 +42,8 @@ def simulate_orbital_pass(
     reasoner: Reasoner | None = None,
     reasoner_mode: str = "disabled",
     reset_queue: bool = False,
+    require_crops: bool = False,
+    write_drop_payloads: bool = False,
 ) -> list[dict]:
     if reset_queue:
         _reset_transmission_queue(transmission_queue)
@@ -63,12 +76,26 @@ def simulate_orbital_pass(
                     detection=detection,
                     crop_path=crop_artifact.path,
                 )
-            payload = build_transmission_payload(detection, tile_path, crop_artifact, vlm_reasoning)
-            output_path = transmission_queue / f"{detection.tile_id}.json"
-            payload_bytes = _finalize_payload_bytes(payload, original_bytes, crop_artifact.size_bytes)
-            output_path.write_bytes(payload_bytes)
-            json_payload_bytes = output_path.stat().st_size
-            transmitted_bytes = json_payload_bytes + crop_artifact.size_bytes
+            if require_crops and should_transmit_alert(detection) and crop_artifact.path is None:
+                detail = crop_artifact.error or "detector produced an alert without a crop artifact"
+                raise RequiredCropUnavailable(f"{detection.tile_id}: {detail}")
+
+            output_path = None
+            json_payload_bytes = 0
+            transmitted_bytes = 0
+            if should_transmit_alert(detection) or write_drop_payloads:
+                payload = build_transmission_payload(
+                    detection,
+                    tile_path,
+                    crop_artifact,
+                    vlm_reasoning,
+                    triage_min_confidence=confidence_threshold,
+                )
+                output_path = transmission_queue / f"{detection.tile_id}.json"
+                payload_bytes = _finalize_payload_bytes(payload, original_bytes, crop_artifact.size_bytes)
+                output_path.write_bytes(payload_bytes)
+                json_payload_bytes = output_path.stat().st_size
+                transmitted_bytes = json_payload_bytes + crop_artifact.size_bytes
 
             record = telemetry_record(
                 tile_path=tile_path,
@@ -82,6 +109,7 @@ def simulate_orbital_pass(
                 crop_error=crop_artifact.error,
                 output_path=output_path,
                 vlm_reasoning=vlm_reasoning,
+                triage_min_confidence=confidence_threshold,
             )
             record["requested_detector_mode"] = detector_mode
             record["requested_reasoner_mode"] = reasoner_mode
@@ -141,7 +169,12 @@ def main() -> int:
     parser.add_argument("--raw-tiles", type=Path, default=Path("data/raw_tiles"))
     parser.add_argument("--transmission-queue", type=Path, default=Path("transmission_queue"))
     parser.add_argument("--detector", choices=("baseline", "yolo"), default="baseline")
-    parser.add_argument("--reasoner", choices=("disabled", "liquid-mock", "liquid-local"), default="disabled")
+    parser.add_argument(
+        "--reasoner",
+        choices=("disabled", "liquid-mock", "liquid-local"),
+        default="disabled",
+        help="Liquid VLM reasoner backend. 'liquid-local' runs LFM2.5-VL via transformers.",
+    )
     parser.add_argument("--model-path", type=Path, default=DEFAULT_MODEL_PATH)
     parser.add_argument("--confidence-threshold", type=float, default=0.25)
     parser.add_argument(
@@ -153,6 +186,16 @@ def main() -> int:
         "--allow-baseline-fallback",
         action="store_true",
         help="Allow YOLO setup failures to fall back to the simulated baseline detector.",
+    )
+    parser.add_argument(
+        "--require-crops",
+        action="store_true",
+        help="Fail if an alert cannot produce a real crop artifact.",
+    )
+    parser.add_argument(
+        "--write-drop-payloads",
+        action="store_true",
+        help="Legacy/debug mode: write JSON files for dropped tiles instead of telemetry-only drops.",
     )
     args = parser.parse_args()
 
@@ -166,6 +209,8 @@ def main() -> int:
             allow_baseline_fallback=args.allow_baseline_fallback,
             reasoner_mode=args.reasoner,
             reset_queue=args.reset_queue,
+            require_crops=args.require_crops,
+            write_drop_payloads=args.write_drop_payloads,
         )
     except YoloDetectorError as exc:
         print(f"Detector setup failed: {exc}")
@@ -175,6 +220,10 @@ def main() -> int:
         print(f"Liquid reasoner setup/inference failed: {exc}")
         print("Use --reasoner disabled for YOLO-only mode, or --reasoner liquid-mock for explicit simulated reasoning.")
         return 3
+    except RequiredCropUnavailable as exc:
+        print(f"Required crop unavailable: {exc}")
+        print("Use readable image tiles with detector bboxes, or rerun without --require-crops for diagnostic telemetry.")
+        return 4
     total_raw = sum(record["original_payload_bytes"] for record in records)
     total_transmitted = sum(record["transmitted_payload_bytes"] for record in records)
     saved = max(0, total_raw - total_transmitted)

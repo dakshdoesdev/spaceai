@@ -1,0 +1,6 @@
+expected_label,lat,lon,notes,region_name,source,tile_id
+negative,29.432000,76.917000,"Industrial false positive. Verify no kiln in selected tile.","Haryana industrial control","manual_negative_control","haryana_industrial_negative_001"
+negative,29.410000,76.990000,"Agricultural fields. Verify no kiln in selected tile.","Haryana agricultural fields control","manual_negative_control","haryana_ag_fields_negative_001"
+negative,29.365000,76.930000,"Greenhouse/polyhouse-like control. Verify no kiln in selected tile.","Haryana greenhouse polyhouse control","manual_negative_control","haryana_polyhouse_negative_001"
+negative,29.455000,76.875000,"Warehouses/construction/bare soil. Verify no kiln in selected tile.","Haryana warehouse construction control","manual_negative_control","haryana_warehouse_negative_001"
+negative,29.375000,76.945000,"Settlement-like area without visible kilns. Verify no kiln in selected tile.","Haryana settlement control","manual_negative_control","haryana_settlement_negative_001"

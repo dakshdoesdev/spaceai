@@ -1,503 +1,160 @@
+"""KilnWatch ground station — single-page mission dashboard.
+
+The judge sees one screen: bandwidth saved up top, then the alerts the
+satellite chose to downlink, each with its Liquid VLM reasoning and crop
+evidence. Imagery provenance and detector honesty are visible, never hidden.
+"""
+
 from __future__ import annotations
 
 import json
-import math
 from html import escape
 from pathlib import Path
 from typing import Any
+
 import streamlit as st
 
 from kilnwatch.ground_station import (
     calculate_metrics,
     cumulative_series,
     display_decision,
-    event_downlinked_bytes,
     format_bytes,
     load_ground_station_records,
     mission_proof_counts,
     proof_status_summary,
+    reasoner_statuses,
     resolve_crop_evidence,
 )
 
 
 st.set_page_config(
-    page_title="KilnWatch Mission Control",
+    page_title="KilnWatch — Satellite-Edge Triage",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 
 def main() -> None:
-    _inject_mission_control_css()
-    active_view = _active_query_value("view", "triage", _VIEW_KEYS)
-    active_tab = _active_query_value("tab", "telemetry", _TAB_KEYS)
-    _render_ops_rail(active_view)
-    _render_top_bar(active_view, active_tab)
+    _inject_css()
+    payloads, telemetry, sample = load_ground_station_records()
+    if not payloads and not telemetry:
+        _render_empty_state()
+        return
 
-    payloads, telemetry_events, sample_data = load_ground_station_records()
-    if not payloads and not telemetry_events:
-        st.error("No transmission_queue or telemetry_logs found. Run the orbital pass first.")
-        st.stop()
+    metrics = calculate_metrics(telemetry)
+    counts = mission_proof_counts(payloads, telemetry)
+    status = proof_status_summary(payloads, telemetry, sample)
+    evidence = resolve_crop_evidence(payloads, telemetry)
+    statuses = reasoner_statuses(payloads, telemetry)
 
-    _ensure_replay_index(telemetry_events)
-    replay_events = _current_replay_events(telemetry_events)
-    status = proof_status_summary(payloads, telemetry_events, sample_data)
-    metrics = calculate_metrics(replay_events)
-    counts = mission_proof_counts(payloads, replay_events)
-    evidence = resolve_crop_evidence(payloads, replay_events)
-
-    st.markdown('<main class="kw-main">', unsafe_allow_html=True)
-    _render_header(active_view, active_tab)
-    _render_view(
-        active_view,
-        active_tab,
-        payloads,
-        telemetry_events,
-        replay_events,
-        status,
-        sample_data,
-        metrics,
-        counts,
-        evidence,
-    )
-    st.markdown("</main>", unsafe_allow_html=True)
+    _render_header(status, sample, statuses)
+    _render_hero_strip(metrics, counts)
+    _render_honesty_panel(status, sample, statuses)
+    _render_imagery_provenance()
+    _render_alerts(payloads, telemetry, evidence)
+    _render_downlink_chart(telemetry, metrics)
+    _render_diagnostics(payloads, telemetry, status)
 
 
-_VIEW_KEYS = {"sensor", "network", "payload", "triage", "system"}
-_TAB_KEYS = {"live", "archive", "telemetry", "diagnostics"}
+# ────────────────────────────────────────────────────────────
+# Styling
+# ────────────────────────────────────────────────────────────
 
 
-def _inject_mission_control_css() -> None:
+def _inject_css() -> None:
     st.markdown(
         """
         <style>
         :root {
-            --kw-bg: #141313;
-            --kw-panel: #1c1b1b;
-            --kw-panel-2: #201f1f;
-            --kw-panel-3: #353434;
-            --kw-text: #e5e2e1;
-            --kw-muted: #c4c7c8;
-            --kw-border: #444748;
-            --kw-outline: #8e9192;
-            --kw-good: #fdfdfc;
-            --kw-stream: #c1c7d1;
-            --kw-warn: #ffba43;
-            --kw-error: #ffb4ab;
+            --kw-bg: #071013;
+            --kw-panel: #10191d;
+            --kw-panel-2: #142127;
+            --kw-panel-3: #1f2d33;
+            --kw-text: #e6edf0;
+            --kw-muted: #90a0a7;
+            --kw-border: #2f3f46;
+            --kw-outline: #51646c;
+            --kw-good: #34a853;
+            --kw-stream: #4b9cd3;
+            --kw-warn: #d79b2b;
+            --kw-error: #d94f45;
+            --kw-liquid: #6b8cff;
         }
+        .stApp { background: var(--kw-bg); color: var(--kw-text); font-family: ui-sans-serif, system-ui, sans-serif; }
+        .block-container { max-width: 1200px; padding: 24px 32px 48px; margin: 0 auto; }
+        [data-testid="stToolbar"], [data-testid="stDecoration"], [data-testid="stStatusWidget"], header[data-testid="stHeader"] { display: none; }
 
-        .stApp {
-            background: var(--kw-bg);
-            color: var(--kw-text);
-            font-family: ui-sans-serif, system-ui, sans-serif;
-        }
+        .kw-title { display: flex; align-items: baseline; justify-content: space-between; padding: 0 0 16px; border-bottom: 1px solid var(--kw-border); margin-bottom: 28px; gap: 24px; flex-wrap: wrap; }
+        .kw-title h1 { margin: 0; font-family: monospace; font-size: 28px; line-height: 1.1; font-weight: 600; color: var(--kw-text); letter-spacing: 0.5px; }
+        .kw-title .kw-tag { color: var(--kw-muted); font-family: monospace; font-size: 13px; }
+        .kw-title .kw-status { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-        .block-container {
-            max-width: none;
-            padding: 80px 24px 24px 280px;
-            margin-left: 0;
-        }
+        .kw-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--kw-outline); background: var(--kw-panel); color: var(--kw-text); padding: 6px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; border-radius: 999px; letter-spacing: 0.5px; }
+        .kw-chip.good { border-color: var(--kw-good); color: var(--kw-good); }
+        .kw-chip.warn { border-color: var(--kw-warn); color: var(--kw-warn); }
+        .kw-chip.muted { color: var(--kw-muted); }
+        .kw-chip.liquid { border-color: var(--kw-liquid); color: var(--kw-liquid); }
+        .kw-chip .pip { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.85; }
 
-        [data-testid="stToolbar"],
-        [data-testid="stDecoration"],
-        [data-testid="stStatusWidget"],
-        header[data-testid="stHeader"] {
-            display: none;
-        }
+        .kw-hero { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        .kw-hero-cell { border: 1px solid var(--kw-border); background: var(--kw-panel); padding: 18px 20px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; min-height: 130px; }
+        .kw-hero-cell .label { color: var(--kw-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .kw-hero-cell .value { font-family: monospace; color: var(--kw-good); }
+        .kw-hero-cell.primary .value { font-size: 56px; line-height: 1.1; font-weight: 600; }
+        .kw-hero-cell.primary .sub { color: var(--kw-muted); font-family: monospace; font-size: 12px; margin-top: 4px; }
+        .kw-hero-cell .value.small { font-size: 28px; }
 
-        .kw-side {
-            position: fixed;
-            inset: 0 auto 0 0;
-            width: 256px;
-            background: var(--kw-panel);
-            border-right: 1px solid var(--kw-border);
-            z-index: 20;
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-        }
+        .kw-section { margin: 32px 0 12px; display: flex; align-items: baseline; justify-content: space-between; }
+        .kw-section h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--kw-text); letter-spacing: 1.5px; text-transform: uppercase; }
+        .kw-section .meta { color: var(--kw-muted); font-family: monospace; font-size: 11px; }
 
-        .kw-side-title {
-            font-size: 18px;
-            font-weight: 700;
-        }
+        .kw-honesty { border: 1px solid var(--kw-border); background: var(--kw-panel-2); padding: 16px 18px; border-radius: 8px; font-family: monospace; font-size: 13px; color: var(--kw-text); display: flex; flex-direction: column; gap: 12px; }
+        .kw-honesty .row { display: flex; flex-wrap: wrap; gap: 18px; }
+        .kw-honesty .item { display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
+        .kw-honesty .item .k { color: var(--kw-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .kw-honesty .item .v { color: var(--kw-text); font-size: 14px; }
+        .kw-honesty .item .v.good { color: var(--kw-good); }
+        .kw-honesty .item .v.warn { color: var(--kw-warn); }
+        .kw-honesty .item .v.liquid { color: var(--kw-liquid); }
 
-        .kw-side-status {
-            margin-top: 4px;
-            font-family: monospace;
-            font-size: 13px;
-            color: var(--kw-muted);
-            position: relative;
-            cursor: default;
-        }
+        .kw-provenance { border: 1px dashed var(--kw-outline); background: var(--kw-panel); padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 12px; color: var(--kw-muted); line-height: 1.55; }
+        .kw-provenance strong { color: var(--kw-text); }
 
-        .kw-side-status:hover .kw-flyout,
-        .kw-nav-item:hover .kw-flyout,
-        .kw-tab:hover .kw-flyout {
-            display: block;
-        }
+        .kw-alert { border: 1px solid var(--kw-border); background: var(--kw-panel); padding: 16px 18px; border-radius: 8px; margin-bottom: 12px; display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: start; }
+        .kw-alert.high { border-left: 3px solid var(--kw-error); }
+        .kw-alert.medium { border-left: 3px solid var(--kw-warn); }
+        .kw-alert.low { border-left: 3px solid var(--kw-stream); }
+        .kw-alert .crop { width: 96px; aspect-ratio: 1; border: 1px solid var(--kw-outline); background: #091114; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .kw-alert .crop img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+        .kw-alert .crop.empty { color: var(--kw-muted); font-family: monospace; font-size: 10px; text-align: center; padding: 6px; }
+        .kw-alert .body { display: flex; flex-direction: column; gap: 8px; }
+        .kw-alert .head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+        .kw-alert .tile-id { font-family: monospace; font-size: 13px; color: var(--kw-text); font-weight: 700; }
+        .kw-alert .meta { color: var(--kw-muted); font-family: monospace; font-size: 11px; }
+        .kw-alert .meta strong { color: var(--kw-text); }
+        .kw-alert .reason-block { background: var(--kw-panel-2); border: 1px solid var(--kw-border); padding: 10px 12px; border-radius: 6px; font-family: monospace; font-size: 12px; color: var(--kw-text); line-height: 1.55; }
+        .kw-alert .reason-block .label { color: var(--kw-liquid); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+        .kw-alert .reason-block.no-liquid { border-style: dashed; color: var(--kw-muted); }
+        .kw-alert .reason-block.no-liquid .label { color: var(--kw-muted); }
+        .kw-alert .triage-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .kw-alert .triage-row .arrow { color: var(--kw-muted); font-family: monospace; }
 
-        .kw-nav {
-            margin-top: 36px;
-            display: grid;
-            gap: 4px;
-        }
+        .kw-chart { border: 1px solid var(--kw-border); background: var(--kw-panel); padding: 18px; border-radius: 8px; font-family: monospace; font-size: 12px; color: var(--kw-text); }
+        .kw-chart-row { display: grid; grid-template-columns: 60px 1fr 1fr 100px; gap: 12px; padding: 6px 0; border-top: 1px solid var(--kw-border); }
+        .kw-chart-row:first-child { border-top: 0; color: var(--kw-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+        .kw-chart-row .bar { height: 8px; background: #091114; border: 1px solid var(--kw-border); position: relative; align-self: center; }
+        .kw-chart-row .bar > div { height: 100%; }
+        .kw-chart-row .bar.raw > div { background: var(--kw-muted); }
+        .kw-chart-row .bar.dl > div { background: var(--kw-good); }
 
-        .kw-nav-item {
-            position: relative;
-            height: 40px;
-            padding: 0 12px;
-            border-left: 2px solid transparent;
-            color: var(--kw-muted);
-            font-size: 11px;
-            font-weight: 700;
-        }
+        .kw-empty { padding: 80px 24px; text-align: center; color: var(--kw-muted); font-family: monospace; }
+        .kw-empty h2 { color: var(--kw-text); font-family: monospace; font-size: 18px; margin: 0 0 12px; }
+        .kw-empty code { background: var(--kw-panel); padding: 6px 10px; border-radius: 4px; color: var(--kw-good); display: inline-block; margin: 4px 0; }
 
-        .kw-nav-link {
-            color: inherit;
-            text-decoration: none;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .kw-nav-link:hover,
-        .kw-tab:hover {
-            color: var(--kw-text);
-        }
-
-        .kw-nav-item.active {
-            background: #414750;
-            color: var(--kw-text);
-            border-left-color: var(--kw-good);
-        }
-
-        .kw-nav-item.active::after {
-            content: "";
-            position: absolute;
-            left: 48px;
-            right: 12px;
-            bottom: 5px;
-            height: 2px;
-            background: var(--kw-good);
-        }
-
-        .kw-nav-symbol {
-            width: 22px;
-            font-family: monospace;
-            text-align: center;
-            font-size: 18px;
-        }
-
-        .kw-side-footer {
-            margin-top: auto;
-            border: 1px solid var(--kw-outline);
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--kw-text);
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .kw-top {
-            position: fixed;
-            top: 0;
-            left: 256px;
-            right: 0;
-            z-index: 10;
-            height: 56px;
-            background: #0e0e0e;
-            border-bottom: 1px solid var(--kw-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-        }
-
-        .kw-build {
-            font-family: monospace;
-            font-size: 24px;
-            letter-spacing: -0.02em;
-            color: var(--kw-good);
-        }
-
-        .kw-tabs {
-            display: flex;
-            gap: 28px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--kw-muted);
-        }
-
-        .kw-tab {
-            position: relative;
-            height: 56px;
-            display: flex;
-            align-items: center;
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .kw-tab.active {
-            color: var(--kw-text);
-            border-bottom: 2px solid var(--kw-text);
-        }
-
-        .kw-flyout {
-            display: none;
-            position: absolute;
-            left: calc(100% + 14px);
-            top: 0;
-            width: 260px;
-            background: #0e0e0e;
-            border: 1px solid var(--kw-outline);
-            color: var(--kw-text);
-            z-index: 40;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 12px;
-            line-height: 1.45;
-        }
-
-        .kw-flyout-title {
-            color: var(--kw-good);
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .kw-flyout-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            border-top: 1px solid var(--kw-border);
-            padding-top: 6px;
-            margin-top: 6px;
-            color: var(--kw-muted);
-        }
-
-        .kw-tab .kw-flyout {
-            left: auto;
-            right: 0;
-            top: 52px;
-        }
-
-        .kw-main {
-            display: block;
-            padding: 0;
-        }
-
-        .kw-title {
-            padding: 0 0 24px;
-            border-bottom: 1px solid var(--kw-border);
-            margin-bottom: 24px;
-        }
-
-        .kw-title h1 {
-            margin: 0 0 8px;
-            font-family: monospace;
-            font-size: 24px;
-            line-height: 32px;
-            font-weight: 500;
-            color: var(--kw-text);
-        }
-
-        .kw-title p {
-            margin: 0;
-            font-family: monospace;
-            font-size: 13px;
-            color: var(--kw-muted);
-        }
-
-        .kw-section-label {
-            margin: 18px 0 8px;
-            color: var(--kw-text);
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .kw-strip,
-        .kw-metrics {
-            display: grid;
-            gap: 6px;
-        }
-
-        .kw-strip {
-            grid-template-columns: repeat(5, max-content);
-            overflow-x: auto;
-            padding-bottom: 2px;
-        }
-
-        .kw-chip {
-            border: 1px solid var(--kw-outline);
-            background: var(--kw-panel);
-            color: var(--kw-text);
-            padding: 7px 9px;
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .kw-pip {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            margin-right: 6px;
-            background: var(--kw-good);
-        }
-
-        .kw-pip.muted { background: var(--kw-border); }
-        .kw-pip.warn { background: var(--kw-warn); }
-
-        .kw-metrics {
-            grid-template-columns: repeat(6, minmax(0, 1fr));
-            margin-top: 10px;
-        }
-
-        .kw-metric {
-            min-height: 96px;
-            border: 1px solid var(--kw-border);
-            background: var(--kw-panel);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .kw-metric-label {
-            color: var(--kw-muted);
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .kw-metric-value {
-            font-family: monospace;
-            font-size: 24px;
-            color: var(--kw-good);
-        }
-
-        .kw-panel {
-            border: 1px solid var(--kw-border);
-            background: var(--kw-panel);
-        }
-
-        .kw-panel-head {
-            background: var(--kw-panel-3);
-            border-bottom: 1px solid var(--kw-border);
-            padding: 10px 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .kw-panel-body {
-            padding: 12px;
-        }
-
-        .kw-transparency {
-            margin-top: 20px;
-            border: 1px solid var(--kw-outline);
-            background: var(--kw-panel-2);
-            padding: 12px;
-            font-family: monospace;
-            font-size: 13px;
-            color: var(--kw-muted);
-        }
-
-        .kw-transparency strong {
-            color: var(--kw-text);
-        }
-
-        .kw-lower {
-            display: grid;
-            grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
-            gap: 24px;
-            margin-top: 20px;
-        }
-
-        .kw-evidence-note {
-            font-family: monospace;
-            color: var(--kw-muted);
-            text-align: center;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .kw-json pre {
-            margin: 0;
-            padding: 12px;
-            min-height: 220px;
-            overflow: auto;
-            background: #0e0e0e;
-            color: var(--kw-text);
-            border: 0;
-            font-family: monospace;
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        div[data-testid="stDataFrame"] {
-            border: 1px solid var(--kw-border);
-        }
-
-        .kw-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: monospace;
-            font-size: 13px;
-        }
-
-        .kw-table th {
-            color: var(--kw-muted);
-            background: var(--kw-panel-2);
-            border-bottom: 1px solid var(--kw-border);
-            font-size: 11px;
-            font-weight: 700;
-            padding: 9px 10px;
-            text-align: left;
-        }
-
-        .kw-table td {
-            border-bottom: 1px solid var(--kw-border);
-            padding: 9px 10px;
-            color: var(--kw-text);
-            white-space: nowrap;
-        }
-
-        .kw-table td.muted {
-            color: var(--kw-muted);
-        }
-
-        .kw-table td.good {
-            color: var(--kw-good);
-        }
-
-        div[data-testid="stButton"] button {
-            border-radius: 0;
-            border: 1px solid var(--kw-outline);
-            background: transparent;
-            color: var(--kw-text);
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        div[data-testid="stButton"] button:hover {
-            border-color: var(--kw-good);
-            color: var(--kw-good);
-        }
-
-        @media (max-width: 920px) {
-            .kw-side { display: none; }
-            .kw-top { left: 0; }
-            .block-container { padding: 76px 16px 16px; }
-            .kw-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .kw-lower { grid-template-columns: 1fr; }
-            .kw-build { font-size: 18px; }
-            .kw-tabs { display: none; }
+        @media (max-width: 900px) {
+            .kw-hero { grid-template-columns: 1fr 1fr; }
+            .kw-alert { grid-template-columns: 64px 1fr; }
+            .kw-alert .crop { width: 64px; }
         }
         </style>
         """,
@@ -505,106 +162,28 @@ def _inject_mission_control_css() -> None:
     )
 
 
-def _render_ops_rail(active_view: str) -> None:
-    nav_items = [
-        ("sensor", "01", "SENSOR", "Sensor", "Raw tile intake is satellite-side only.", "Ground access", "blocked", "Visible here", "telemetry"),
-        ("network", "02", "NETWORK", "Network", "Downlink path carries JSON payloads and crop files only.", "Queue", "transmission_queue/", "Raw bytes", "not sent"),
-        ("payload", "03", "PAYLOAD", "Payload", "Each alert links detector metadata, triage action, and crop evidence.", "Format", "JSON + PNG", "Preview", "real crop only"),
-        ("triage", "04", "TRIAGE", "Triage", "Active judge view: proof status, mission metrics, alerts, crop review.", "Detector", "honest mode", "LFM", "optional"),
-        ("system", "05", "SYSTEM", "System", "Technical honesty state comes from payload and telemetry metadata.", "Fallbacks", "visible", "Samples", "flagged"),
-    ]
-    nav_html = "\n".join(
-        _nav_item_html(
-            key,
-            number,
-            label,
-            title,
-            body,
-            row_one_label,
-            row_one_value,
-            row_two_label,
-            row_two_value,
-            key == active_view,
-        )
-        for (
-            key,
-            number,
-            label,
-            title,
-            body,
-            row_one_label,
-            row_one_value,
-            row_two_label,
-            row_two_value,
-        ) in nav_items
-    )
+# ────────────────────────────────────────────────────────────
+# Sections
+# ────────────────────────────────────────────────────────────
+
+
+def _render_header(status: Any, sample: bool, statuses: set) -> None:
+    detector_chip = _detector_chip(status, sample)
+    liquid_chip = _liquid_chip(statuses)
+    boundary_chip = '<span class="kw-chip muted"><span class="pip"></span>QUEUE-ONLY</span>'
+    sample_chip = '<span class="kw-chip warn"><span class="pip"></span>SAMPLE DATA</span>' if sample else ""
     st.markdown(
         f"""
-        <aside class="kw-side">
+        <header class="kw-title">
           <div>
-            <div class="kw-side-title">SAT-01 / BUS / OPS</div>
-            <div class="kw-side-status">STATUS: NOMINAL
-              <div class="kw-flyout">
-                <div class="kw-flyout-title">Satellite Bus</div>
-                <div>Current orbit pass is loaded from downlinked telemetry.</div>
-                <div class="kw-flyout-row"><span>Boundary</span><span>queue-only</span></div>
-                <div class="kw-flyout-row"><span>Detector</span><span>YOLO strict</span></div>
-              </div>
-            </div>
+            <h1>KilnWatch</h1>
+            <div class="kw-tag">Satellite-edge AI triage / Indo-Gangetic Plain brick-kiln monitoring / GS-01</div>
           </div>
-          <nav class="kw-nav">
-            {nav_html}
-          </nav>
-          <div class="kw-side-footer">REPLAY_MODE</div>
-        </aside>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def _nav_item_html(
-    key: str,
-    number: str,
-    label: str,
-    title: str,
-    body: str,
-    row_one_label: str,
-    row_one_value: str,
-    row_two_label: str,
-    row_two_value: str,
-    active: bool,
-) -> str:
-    active_class = " active" if active else ""
-    return (
-        f'<div class="kw-nav-item{active_class}">'
-        f'<a class="kw-nav-link" href="/?view={key}" target="_self">'
-        f'<span class="kw-nav-symbol">{escape(number)}</span><span>{escape(label)}</span></a>'
-        '<div class="kw-flyout">'
-        f'<div class="kw-flyout-title">{escape(title)}</div>'
-        f"<div>{escape(body)}</div>"
-        f'<div class="kw-flyout-row"><span>{escape(row_one_label)}</span><span>{escape(row_one_value)}</span></div>'
-        f'<div class="kw-flyout-row"><span>{escape(row_two_label)}</span><span>{escape(row_two_value)}</span></div>'
-        "</div></div>"
-    )
-
-
-def _render_top_bar(active_view: str, active_tab: str) -> None:
-    tabs = [
-        ("live", "LIVE", "Live", "Shows the current replay frame from queue telemetry.", "State", "local demo"),
-        ("archive", "ARCHIVE", "Archive", "Past alert payloads remain visible from transmission_queue.", "Source", "JSON files"),
-        ("telemetry", "TELEMETRY", "Telemetry", "Active view for byte accounting and detector honesty fields.", "Replay", "enabled"),
-        ("diagnostics", "DIAGNOSTICS", "Diagnostics", "Boundary proof and missing crop states are exposed in-panel.", "Raw tiles", "not read"),
-    ]
-    tabs_html = "\n".join(
-        _tab_html(active_view, key, label, title, body, row_label, row_value, key == active_tab)
-        for key, label, title, body, row_label, row_value in tabs
-    )
-    st.markdown(
-        f"""
-        <header class="kw-top">
-          <div class="kw-build">ORBITAL_TRIAGE_v4.1</div>
-          <div class="kw-tabs">
-            {tabs_html}
+          <div class="kw-status">
+            {detector_chip}
+            {liquid_chip}
+            {boundary_chip}
+            {sample_chip}
           </div>
         </header>
         """,
@@ -612,564 +191,410 @@ def _render_top_bar(active_view: str, active_tab: str) -> None:
     )
 
 
-def _tab_html(
-    active_view: str,
-    key: str,
-    label: str,
-    title: str,
-    body: str,
-    row_label: str,
-    row_value: str,
-    active: bool,
-) -> str:
-    active_class = " active" if active else ""
-    return (
-        f'<a class="kw-tab{active_class}" href="/?view={active_view}&tab={key}" target="_self">{escape(label)}'
-        '<div class="kw-flyout">'
-        f'<div class="kw-flyout-title">{escape(title)}</div>'
-        f"<div>{escape(body)}</div>"
-        f'<div class="kw-flyout-row"><span>{escape(row_label)}</span><span>{escape(row_value)}</span></div>'
-        "</div></a>"
+def _render_hero_strip(metrics: Any, counts: Any) -> None:
+    saved_pct = f"{metrics.bandwidth_saved_percent:.1f}%"
+    raw = format_bytes(metrics.raw_bytes_processed)
+    dl = format_bytes(metrics.downlinked_bytes)
+    saved = format_bytes(metrics.bytes_saved)
+    ratio = (
+        "∞"
+        if metrics.compression_ratio == float("inf")
+        else f"{metrics.compression_ratio:.0f}×"
     )
-
-
-def _render_header(active_view: str, active_tab: str) -> None:
-    titles = {
-        "sensor": ("Sensor", "Onboard image intake stays satellite-side; the ground view sees only telemetry proof."),
-        "network": ("Network", "Downlink accounting for JSON alerts and crop artifacts."),
-        "payload": ("Payload", "Downlinked alert files, crop evidence, and structured payload state."),
-        "triage": ("KilnWatch", "Satellite-side brick kiln triage with queue-only downlink."),
-        "system": ("System", "Detector honesty, reasoner state, fallback state, and boundary diagnostics."),
-    }
-    title, subtitle = titles.get(active_view, titles["triage"])
     st.markdown(
         f"""
-        <section class="kw-title">
-          <h1>{escape(title)}</h1>
-          <p>{escape(subtitle)} / top tab: {escape(active_tab)}</p>
+        <section class="kw-hero">
+          <div class="kw-hero-cell primary">
+            <div class="label">Bandwidth saved</div>
+            <div class="value">{saved_pct}</div>
+            <div class="sub">raw {raw} → downlinked {dl} ({saved} not transmitted)</div>
+          </div>
+          <div class="kw-hero-cell">
+            <div class="label">Tiles processed</div>
+            <div class="value small">{metrics.tiles_processed:,}</div>
+            <div class="sub">onboard, before downlink</div>
+          </div>
+          <div class="kw-hero-cell">
+            <div class="label">Alerts downlinked</div>
+            <div class="value small">{counts.detections:,}</div>
+            <div class="sub">{counts.crops_generated} with crop evidence</div>
+          </div>
+          <div class="kw-hero-cell">
+            <div class="label">Compression ratio</div>
+            <div class="value small">{ratio}</div>
+            <div class="sub">raw / transmitted</div>
+          </div>
         </section>
         """,
         unsafe_allow_html=True,
     )
 
 
-def _render_view(
-    active_view: str,
-    active_tab: str,
-    payloads: list[dict[str, Any]],
-    telemetry_events: list[dict[str, Any]],
-    replay_events: list[dict[str, Any]],
-    status: Any,
-    sample_data: bool,
-    metrics: Any,
-    counts: Any,
-    evidence: list[Any],
-) -> None:
-    if active_view == "sensor":
-        _render_sensor_view(telemetry_events, replay_events)
-    elif active_view == "network":
-        _render_network_view(metrics, replay_events)
-    elif active_view == "payload":
-        _render_payload_view(payloads, replay_events, evidence)
-    elif active_view == "system":
-        _render_system_view(status, sample_data, payloads, telemetry_events, evidence)
-    else:
-        _render_triage_view(
-            active_tab,
-            payloads,
-            telemetry_events,
-            replay_events,
-            status,
-            sample_data,
-            metrics,
-            counts,
-            evidence,
-        )
+def _render_honesty_panel(status: Any, sample: bool, statuses: set) -> None:
+    detector_class = "good" if status.detector_label == "STRICT YOLO REAL" else "warn"
+    liquid_label, liquid_class = _liquid_label_and_class(statuses)
+    fallback_used = bool(status.truth_fields.get("fallback_used"))
+    fallback_class = "warn" if fallback_used else "good"
+    sample_label = "ACTIVE" if sample else "DISABLED"
+    sample_class = "warn" if sample else "muted"
 
+    detector_version = status.truth_fields.get("detector_version", "—")
+    if isinstance(detector_version, list):
+        detector_version = ", ".join(str(x) for x in detector_version)
 
-def _render_triage_view(
-    active_tab: str,
-    payloads: list[dict[str, Any]],
-    telemetry_events: list[dict[str, Any]],
-    replay_events: list[dict[str, Any]],
-    status: Any,
-    sample_data: bool,
-    metrics: Any,
-    counts: Any,
-    evidence: list[Any],
-) -> None:
-    replay_events = _render_replay_controls(telemetry_events)
-    metrics = calculate_metrics(replay_events)
-    counts = mission_proof_counts(payloads, replay_events)
-    evidence = resolve_crop_evidence(payloads, replay_events)
-    _render_proof_status(status, sample_data, evidence)
-    _render_mission_metrics(metrics, counts)
-    _render_transparency_panel(status)
-    if active_tab == "live":
-        _render_live_panel(replay_events)
-    elif active_tab == "archive":
-        _render_archive_panel(payloads)
-    elif active_tab == "diagnostics":
-        _render_system_view(status, sample_data, payloads, telemetry_events, evidence)
-    else:
-        _render_lower_console(payloads, replay_events, evidence)
+    reasoner_truth = status.truth_fields.get("vlm_reasoning", {}) or {}
+    reasoner_model = reasoner_truth.get("model_name", "—") if isinstance(reasoner_truth, dict) else "—"
 
-
-def _render_sensor_view(
-    telemetry_events: list[dict[str, Any]],
-    replay_events: list[dict[str, Any]],
-) -> None:
-    latest = replay_events[-1] if replay_events else {}
-    raw_total = sum(_raw_bytes(event) for event in replay_events)
     st.markdown(
         f"""
-        <div class="kw-section-label">Sensor Intake</div>
-        <section class="kw-metrics">
-          <div class="kw-metric"><span class="kw-metric-label">Visible Sensor Feed</span><span class="kw-metric-value">BLOCKED</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Telemetry Events</span><span class="kw-metric-value">{len(replay_events)} / {len(telemetry_events)}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Raw Bytes Processed</span><span class="kw-metric-value">{escape(format_bytes(raw_total))}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Current Tile</span><span class="kw-metric-value" style="font-size:13px">{escape(str(latest.get("tile_id", "none"))[:32])}</span></div>
-        </section>
-        <section class="kw-transparency">
-          The sensor page intentionally does not render raw imagery. It proves the boundary:
-          raw tiles are consumed onboard, while this ground station only sees telemetry fields.
+        <section class="kw-honesty">
+          <div class="row">
+            <div class="item">
+              <span class="k">Detector</span>
+              <span class="v {detector_class}">{escape(status.detector_label)}</span>
+              <span class="k" style="font-size:10px;">{escape(str(detector_version))}</span>
+            </div>
+            <div class="item">
+              <span class="k">Onboard reasoner</span>
+              <span class="v {liquid_class}">{escape(liquid_label)}</span>
+              <span class="k" style="font-size:10px;">{escape(str(reasoner_model))}</span>
+            </div>
+            <div class="item">
+              <span class="k">Fallback used</span>
+              <span class="v {fallback_class}">{'YES' if fallback_used else 'NO'}</span>
+              <span class="k" style="font-size:10px;">strict failure mode is loud</span>
+            </div>
+            <div class="item">
+              <span class="k">Sample fixtures</span>
+              <span class="v {sample_class}">{sample_label}</span>
+              <span class="k" style="font-size:10px;">queue/telemetry visibility only</span>
+            </div>
+          </div>
         </section>
         """,
         unsafe_allow_html=True,
     )
-    _render_raw_telemetry(replay_events)
 
 
-def _render_network_view(metrics: Any, replay_events: list[dict[str, Any]]) -> None:
-    st.markdown(
-        f"""
-        <div class="kw-section-label">Network Downlink</div>
-        <section class="kw-metrics">
-          <div class="kw-metric"><span class="kw-metric-label">Raw Processed</span><span class="kw-metric-value">{escape(format_bytes(metrics.raw_bytes_processed))}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Transmitted</span><span class="kw-metric-value">{escape(format_bytes(metrics.downlinked_bytes))}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Saved</span><span class="kw-metric-value">{metrics.bandwidth_saved_percent:.1f}%</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Ratio</span><span class="kw-metric-value">{escape(_ratio_label(metrics.compression_ratio))}</span></div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-    _render_downlink_chart(replay_events)
-
-
-def _render_payload_view(
-    payloads: list[dict[str, Any]],
-    replay_events: list[dict[str, Any]],
-    evidence: list[Any],
-) -> None:
-    _render_downlink_queue(payloads, replay_events, evidence)
-    _render_evidence_payload(payloads, replay_events, evidence)
-    _render_archive_panel(payloads)
-
-
-def _render_system_view(
-    status: Any,
-    sample_data: bool,
-    payloads: list[dict[str, Any]],
-    telemetry_events: list[dict[str, Any]],
-    evidence: list[Any],
-) -> None:
-    truth_rows = [
-        {"FIELD": "detector", "VALUE": status.detector_label},
-        {"FIELD": "liquid_reasoner", "VALUE": status.reasoner_label},
-        {"FIELD": "sample_data", "VALUE": str(sample_data)},
-        {"FIELD": "payloads", "VALUE": str(len(payloads))},
-        {"FIELD": "telemetry_events", "VALUE": str(len(telemetry_events))},
-        {"FIELD": "real_crop_files", "VALUE": str(sum(1 for item in evidence if item.available))},
-    ]
-    st.markdown('<div class="kw-section-label">System Diagnostics</div>', unsafe_allow_html=True)
-    st.markdown(_simple_table_html(truth_rows, ["FIELD", "VALUE"], "Honesty State"), unsafe_allow_html=True)
+def _render_imagery_provenance() -> None:
     st.markdown(
         """
-        <section class="kw-transparency">
-          Boundary validation: dashboard views are built from downlinked payload JSON,
-          telemetry logs, and actual crop files. Raw onboard image folders are not used here.
+        <section class="kw-section">
+          <h2>Imagery provenance</h2>
+          <span class="meta">honest disclosure</span>
+        </section>
+        <section class="kw-provenance">
+          <strong>Source:</strong> Open-source brick-kiln imagery (Roboflow optical tiles, Indo-Gangetic Plain morphology). These are real overhead images of brick kilns used to wire and prove the satellite-edge pipeline end-to-end.
+          <br><br>
+          <strong>Not:</strong> The included demo tiles are <em>not</em> Sentinel-2 or DPhi SimSat live imagery. They are not labelled as Haryana-provenance ground truth.
+          <br><br>
+          <strong>Production path:</strong> Replace the tile source with the DPhi SimSat <code>/data/image/sentinel</code> endpoint and fine-tune YOLO + Liquid LFM2-VL on Sentinel-domain kiln labels. The triage architecture, queue boundary, and ground-station accounting do not change.
         </section>
         """,
         unsafe_allow_html=True,
     )
 
 
-def _render_live_panel(replay_events: list[dict[str, Any]]) -> None:
-    latest = replay_events[-1] if replay_events else {}
-    st.markdown('<div class="kw-section-label">Live Frame</div>', unsafe_allow_html=True)
-    if not latest:
-        st.info("Replay is reset. Press Start / Next to load the first telemetry frame.")
-        return
-    rows = [{"FIELD": key, "VALUE": latest.get(key, "")} for key in sorted(latest.keys())[:16]]
-    st.markdown(_simple_table_html(rows, ["FIELD", "VALUE"], "Current Telemetry Frame"), unsafe_allow_html=True)
-
-
-def _render_archive_panel(payloads: list[dict[str, Any]]) -> None:
-    rows = []
-    for payload in payloads[-12:]:
-        rows.append(
-            {
-                "TILE": str(payload.get("tile_id", ""))[:36],
-                "ACTION": payload.get("action", payload.get("triage_action", "")),
-                "DETECTOR": payload.get("detector_mode", ""),
-                "CROP": payload.get("crop_path", payload.get("crop_file", "")) or "none",
-            }
-        )
-    st.markdown('<div class="kw-section-label">Archive</div>', unsafe_allow_html=True)
-    if rows:
-        st.markdown(_simple_table_html(rows, ["TILE", "ACTION", "DETECTOR", "CROP"], "Payload Files"), unsafe_allow_html=True)
-    else:
-        st.info("No archived payloads visible in transmission_queue.")
-
-
-def _render_proof_status(status: Any, sample_data: bool, evidence: list[Any]) -> None:
-    crop_state = "CROP: PRESENT" if any(item.available for item in evidence) else "CROP: QUEUE ONLY"
-    fallback_used = bool(status.truth_fields.get("fallback_used"))
-    fallback_state = "FALLBACK: USED" if fallback_used else "FALLBACK: NOT USED"
-    detector_pip = "warn" if status.detector_label in {"BASELINE SIMULATION", "FALLBACK USED"} else ""
-    reasoner_pip = "muted" if status.reasoner_label == "LFM DISABLED" else ""
-    sample_chip = (
-        '<div class="kw-chip"><span class="kw-pip warn"></span>[SAMPLE DATA]</div>'
-        if sample_data
-        else ""
-    )
-    st.markdown(
-        f"""
-        <div class="kw-section-label">Proof Status</div>
-        <section class="kw-strip">
-          <div class="kw-chip"><span class="kw-pip {detector_pip}"></span>[{status.detector_label}]</div>
-          <div class="kw-chip"><span class="kw-pip {reasoner_pip}"></span>[{status.reasoner_label}]</div>
-          <div class="kw-chip"><span class="kw-pip muted"></span>[{fallback_state}]</div>
-          <div class="kw-chip"><span class="kw-pip"></span>[{crop_state}]</div>
-          {sample_chip}
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def _render_mission_metrics(metrics: Any, counts: Any) -> None:
-    data_volume = f"RAW {format_bytes(metrics.raw_bytes_processed)} / DL {format_bytes(metrics.downlinked_bytes)}"
-    tiles = _format_int(metrics.tiles_processed)
-    detections = _format_int(counts.detections)
-    crops = _format_int(counts.crops_generated)
-    saved = f"{metrics.bandwidth_saved_percent:.1f}%"
-    ratio = _ratio_label(metrics.compression_ratio)
-    st.markdown(
-        f"""
-        <div class="kw-section-label">Mission Metrics</div>
-        <section class="kw-metrics">
-          <div class="kw-metric"><span class="kw-metric-label">Tiles Processed</span><span class="kw-metric-value">{tiles}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Detections</span><span class="kw-metric-value">{detections}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Crops Downlinked</span><span class="kw-metric-value">{crops}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Bandwidth Saved</span><span class="kw-metric-value">{saved}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Compression Ratio</span><span class="kw-metric-value">{ratio}</span></div>
-          <div class="kw-metric"><span class="kw-metric-label">Data Volume</span><span class="kw-metric-value" style="font-size:13px">{data_volume}</span></div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def _render_transparency_panel(status: Any) -> None:
-    st.markdown(
-        f"""
-        <section class="kw-transparency">
-          <strong>Engineering Transparency:</strong>
-          Raw images are processed onboard; only JSON/crop artifacts downlinked;
-          ground station reads queue only. Detector state is <strong>{status.detector_label}</strong>.
-          Liquid reasoner state is <strong>{status.reasoner_label}</strong>.
-          Crop quality reflects source resolution and saved crop dimensions.
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def _render_replay_controls(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    st.markdown('<div class="kw-section-label">Mission Replay</div>', unsafe_allow_html=True)
-    controls = st.columns([0.12, 0.12, 0.76])
-    if controls[0].button("Start / Next", use_container_width=True):
-        st.session_state.replay_index = min(st.session_state.replay_index + 1, len(events))
-    if controls[1].button("Reset", use_container_width=True):
-        st.session_state.replay_index = 0
-    replay_index = min(st.session_state.replay_index, len(events))
-    progress = (replay_index / len(events)) if events else 0.0
-    controls[2].markdown(
-        f"""
-        <div style="border:1px solid var(--kw-border);height:36px;padding:7px 9px;font-family:monospace;font-size:12px;color:var(--kw-muted);">
-          <div style="height:4px;background:#0e0e0e;border:1px solid var(--kw-border);margin-bottom:5px;">
-            <div style="height:100%;width:{progress * 100:.1f}%;background:var(--kw-good);"></div>
-          </div>
-          Replay position: {replay_index} / {len(events)} telemetry events
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    return events[:replay_index]
-
-
-def _render_lower_console(
+def _render_alerts(
     payloads: list[dict[str, Any]],
-    events: list[dict[str, Any]],
+    telemetry: list[dict[str, Any]],
     evidence: list[Any],
 ) -> None:
-    left, right = st.columns([1.9, 0.9], gap="large")
-    with left:
-        _render_downlink_queue(payloads, events, evidence)
-        _render_downlink_chart(events)
-    with right:
-        _render_evidence_payload(payloads, events, evidence)
-        _render_raw_telemetry(events)
-
-
-def _render_downlink_queue(
-    payloads: list[dict[str, Any]],
-    events: list[dict[str, Any]],
-    evidence: list[Any],
-) -> None:
-    st.markdown('<div class="kw-section-label">Alerts</div>', unsafe_allow_html=True)
-    rows = _build_queue_rows(payloads, events, evidence)
-    if not rows:
-        st.info("No alerts received at this replay position.")
-        return
-    st.markdown(_queue_table_html(rows), unsafe_allow_html=True)
-
-
-def _queue_table_html(rows: list[dict[str, Any]]) -> str:
-    columns = ["ID", "MODE", "TYPE", "CONF", "TRIAGE", "CROP", "RAW / DL"]
-    return _simple_table_html(rows, columns, "Downlink Queue", max_height=360)
-
-
-def _simple_table_html(
-    rows: list[dict[str, Any]],
-    columns: list[str],
-    title: str,
-    max_height: int | None = None,
-) -> str:
-    header = "".join(f"<th>{escape(column)}</th>" for column in columns)
-    body_rows = []
-    for row in rows:
-        cells = []
-        for column in columns:
-            value = str(row.get(column, ""))
-            css_class = ""
-            if column in {"MODE", "RAW / DL"}:
-                css_class = ' class="muted"'
-            if column in {"TYPE", "CROP"} and value in {"REAL", "PRESENT"}:
-                css_class = ' class="good"'
-            cells.append(f"<td{css_class}>{escape(value)}</td>")
-        body_rows.append(f"<tr>{''.join(cells)}</tr>")
-    max_height_style = f"max-height:{max_height}px;" if max_height else ""
-    return (
-        '<section class="kw-panel">'
-        f'<div class="kw-panel-head"><span>{escape(title)}</span></div>'
-        f'<div class="kw-panel-body" style="padding:0;overflow:auto;{max_height_style}">'
-        f'<table class="kw-table"><thead><tr>{header}</tr></thead>'
-        f"<tbody>{''.join(body_rows)}</tbody></table>"
-        "</div></section>"
+    alerts = _build_alerts(payloads, telemetry, evidence)
+    st.markdown(
+        f"""
+        <section class="kw-section">
+          <h2>Downlinked alerts</h2>
+          <span class="meta">{len(alerts)} alert{'s' if len(alerts) != 1 else ''} • Liquid LFM2-VL onboard reasoning</span>
+        </section>
+        """,
+        unsafe_allow_html=True,
     )
-
-
-def _render_evidence_payload(
-    payloads: list[dict[str, Any]],
-    events: list[dict[str, Any]],
-    evidence: list[Any],
-) -> None:
-    st.markdown('<div class="kw-section-label">Crop Review</div>', unsafe_allow_html=True)
-    selected = _selected_evidence(evidence)
-    st.markdown('<section class="kw-panel"><div class="kw-panel-head"><span>Evidence Payload</span></div><div class="kw-panel-body">', unsafe_allow_html=True)
-    if selected is None:
-        st.markdown('<div class="kw-evidence-note">no real crop available</div>', unsafe_allow_html=True)
-    elif selected.available and selected.path is not None:
-        width, height = _image_size(selected.path)
-        display_width = _crop_display_width(width)
-        st.image(str(selected.path), width=display_width)
-        size = f"{width}x{height}px" if width and height else "size unknown"
+    if not alerts:
         st.markdown(
-            f"""
-            <div class="kw-evidence-note">
-              Native Scale ({size})<br>
-              Source: {selected.path.name}<br>
-              Tile: {selected.tile_id}
+            """
+            <div class="kw-provenance" style="text-align:center;">
+              The satellite chose <strong>not to transmit</strong> any tile in this pass.
+              Bandwidth was preserved; nothing met the kiln-detection threshold.
             </div>
             """,
             unsafe_allow_html=True,
         )
-    else:
-        st.markdown(
-            f'<div class="kw-evidence-note">{selected.tile_id}<br>no real crop available</div>',
-            unsafe_allow_html=True,
-        )
-    st.markdown("</div></section>", unsafe_allow_html=True)
-
-
-def _render_raw_telemetry(events: list[dict[str, Any]]) -> None:
-    latest = events[-1] if events else {}
-    st.markdown('<div class="kw-section-label">Raw Telemetry</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<section class="kw-panel kw-json"><div class="kw-panel-head"><span>Telemetry JSON</span></div>',
-        unsafe_allow_html=True,
-    )
-    st.code(json.dumps(latest, indent=2, sort_keys=True), language="json")
-    st.markdown("</section>", unsafe_allow_html=True)
-
-
-def _render_downlink_chart(events: list[dict[str, Any]]) -> None:
-    st.markdown('<div class="kw-section-label">Cumulative Downlink Proof</div>', unsafe_allow_html=True)
-    series = cumulative_series(events)
-    if not series:
-        st.info("No telemetry at this replay position.")
         return
-    st.markdown(_downlink_proof_html(series), unsafe_allow_html=True)
+    for alert in alerts:
+        _render_alert_card(alert)
 
 
-def _downlink_proof_html(series: list[dict[str, Any]]) -> str:
-    latest = series[-1]
-    raw_total = _safe_int(latest.get("Raw bytes processed in orbit"))
-    downlinked_total = _safe_int(latest.get("Bytes downlinked"))
-    rows = []
-    for point in series[-8:]:
-        event = str(point.get("event", ""))
-        raw_bytes = _safe_int(point.get("Raw bytes processed in orbit"))
-        downlinked_bytes = _safe_int(point.get("Bytes downlinked"))
-        saved = max(raw_bytes - downlinked_bytes, 0)
-        rows.append(
-            "<tr>"
-            f"<td>{escape(event)}</td>"
-            f'<td class="muted">{escape(format_bytes(raw_bytes))}</td>'
-            f'<td class="muted">{escape(format_bytes(downlinked_bytes))}</td>'
-            f"<td>{escape(format_bytes(saved))}</td>"
-            "<td>"
-            '<div style="height:6px;background:#0e0e0e;border:1px solid var(--kw-border);">'
-            f'<div style="height:100%;width:{_percent(raw_bytes, raw_total):.2f}%;background:var(--kw-muted);"></div>'
-            "</div>"
-            '<div style="height:6px;background:#0e0e0e;border:1px solid var(--kw-border);margin-top:4px;">'
-            f'<div style="height:100%;width:{_percent(downlinked_bytes, raw_total):.2f}%;background:var(--kw-good);"></div>'
-            "</div>"
-            "</td>"
-            "</tr>"
-        )
-    return (
-        '<section class="kw-panel">'
-        '<div class="kw-panel-head"><span>Raw vs Downlinked Bytes</span></div>'
-        '<div class="kw-panel-body" style="padding:0;overflow:auto;">'
-        '<table class="kw-table"><thead><tr>'
-        "<th>Event</th><th>Raw</th><th>Downlinked</th><th>Saved</th><th>Proof</th>"
-        f"</tr></thead><tbody>{''.join(rows)}</tbody></table>"
-        "</div></section>"
-        f'<div class="kw-evidence-note" style="text-align:left;margin-top:8px;">'
-        f"Latest cumulative: raw {escape(format_bytes(raw_total))} / "
-        f"downlinked {escape(format_bytes(downlinked_total))}</div>"
-    )
-
-
-def _build_queue_rows(
+def _build_alerts(
     payloads: list[dict[str, Any]],
-    events: list[dict[str, Any]],
+    telemetry: list[dict[str, Any]],
     evidence: list[Any],
 ) -> list[dict[str, Any]]:
-    payload_by_tile = {payload.get("tile_id"): payload for payload in payloads}
-    crop_tiles = {item.tile_id for item in evidence if item.available}
-    rows: list[dict[str, Any]] = []
-    for event in events:
-        decision = display_decision(event)
-        if decision == "IGNORE":
-            continue
-        tile_id = str(event.get("tile_id") or "")
-        payload = payload_by_tile.get(tile_id, {})
-        confidence = payload.get("confidence", event.get("confidence"))
-        rows.append(
-            {
-                "ID": tile_id[:36],
-                "MODE": event.get("detector_mode") or payload.get("detector_mode") or "",
-                "TYPE": "REAL" if event.get("detector_is_real") else "SIM",
-                "CONF": _confidence_label(confidence),
-                "TRIAGE": decision or event.get("action", ""),
-                "CROP": "PRESENT" if tile_id in crop_tiles else "NONE",
-                "RAW / DL": f"{format_bytes(_raw_bytes(event))} / {format_bytes(event_downlinked_bytes(event))}",
-            }
-        )
-    return rows
+    crop_by_tile = {item.tile_id: item for item in evidence}
+    payload_by_tile = {p.get("tile_id"): p for p in payloads}
+    alerts: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for source in (payloads, telemetry):
+        for item in source:
+            tile_id = str(item.get("tile_id") or "")
+            if not tile_id or tile_id in seen:
+                continue
+            decision = display_decision(item)
+            if decision == "IGNORE":
+                continue
+            seen.add(tile_id)
+            payload = payload_by_tile.get(tile_id, {})
+            tel_event = next((t for t in telemetry if t.get("tile_id") == tile_id), {})
+            vlm = (
+                payload.get("vlm_reasoning")
+                or tel_event.get("vlm_reasoning")
+                or {}
+            )
+            alerts.append(
+                {
+                    "tile_id": tile_id,
+                    "decision": decision,
+                    "confidence": payload.get("confidence", tel_event.get("confidence", 0.0)),
+                    "compliance_risk": payload.get(
+                        "compliance_risk", tel_event.get("compliance_risk", "low")
+                    ),
+                    "detector_mode": payload.get(
+                        "detector_mode", tel_event.get("detector_mode", "")
+                    ),
+                    "raw_bytes": int(
+                        tel_event.get("original_payload_bytes")
+                        or payload.get("byte_accounting", {}).get("original_payload_bytes")
+                        or 0
+                    ),
+                    "transmitted_bytes": int(
+                        tel_event.get("transmitted_payload_bytes")
+                        or payload.get("byte_accounting", {}).get("transmitted_payload_bytes")
+                        or 0
+                    ),
+                    "vlm": vlm if isinstance(vlm, dict) else {},
+                    "crop": crop_by_tile.get(tile_id),
+                }
+            )
+    return alerts
 
 
-def _selected_evidence(evidence: list[Any]) -> Any | None:
-    for item in evidence:
-        if item.available:
-            return item
-    return evidence[0] if evidence else None
+def _render_alert_card(alert: dict[str, Any]) -> None:
+    risk = str(alert.get("compliance_risk", "low")).lower()
+    risk_class = risk if risk in {"low", "medium", "high"} else "low"
+    conf = _confidence_pct(alert.get("confidence"))
+    raw = format_bytes(alert.get("raw_bytes", 0))
+    tx = format_bytes(alert.get("transmitted_bytes", 0))
+    decision = alert.get("decision", "")
+    crop_html = _crop_img_html(alert.get("crop"))
+    vlm = alert.get("vlm") or {}
+    reason_html = _reasoning_block_html(vlm)
+    detector_mode = alert.get("detector_mode", "yolo").upper()
+
+    # Safer to render vlm-derived strings via st.markdown HTML escape since they come from a model
+    visual = escape(str(vlm.get("visual_summary") or "")).strip()
+    risk_reasoning = escape(str(vlm.get("risk_reasoning") or "")).strip()
+    review = vlm.get("human_review_needed")
+    review_chip = ""
+    if isinstance(review, bool):
+        cls = "warn" if review else "good"
+        review_chip = f'<span class="kw-chip {cls}" style="margin-left:8px;"><span class="pip"></span>{"REVIEW NEEDED" if review else "AUTO-OK"}</span>'
+
+    st.markdown(
+        f"""
+        <article class="kw-alert {risk_class}">
+          {crop_html}
+          <div class="body">
+            <div class="head">
+              <span class="tile-id">{escape(alert['tile_id'][:48])}</span>
+              <span class="meta">conf <strong>{conf}</strong></span>
+              <span class="meta">risk <strong>{escape(risk)}</strong></span>
+              <span class="meta">det <strong>{escape(detector_mode)}</strong></span>
+              <span class="meta">raw <strong>{escape(raw)}</strong> → tx <strong>{escape(tx)}</strong></span>
+              {review_chip}
+            </div>
+            {reason_html}
+            <div class="triage-row">
+              <span class="meta">triage</span>
+              <span class="arrow">→</span>
+              <span class="kw-chip {'good' if decision in {'CROP_OR_REVIEW','FULL_DOWNLINK'} else 'muted'}">{escape(decision)}</span>
+            </div>
+          </div>
+        </article>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
-def _active_query_value(key: str, default: str, allowed: set[str]) -> str:
-    value = st.query_params.get(key, default)
-    if isinstance(value, list):
-        value = value[0] if value else default
-    return value if value in allowed else default
-
-
-def _ensure_replay_index(events: list[dict[str, Any]]) -> None:
-    if "replay_index" not in st.session_state:
-        st.session_state.replay_index = 0
-    st.session_state.replay_index = min(st.session_state.replay_index, len(events))
-
-
-def _current_replay_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    replay_index = min(st.session_state.replay_index, len(events))
-    return events[:replay_index]
-
-
-def _image_size(path: Path) -> tuple[int | None, int | None]:
+def _crop_img_html(crop: Any) -> str:
+    if crop is None or not getattr(crop, "available", False) or crop.path is None:
+        return '<div class="crop empty">no crop<br>available</div>'
     try:
-        from PIL import Image
+        import base64
 
-        with Image.open(path) as image:
-            return image.size
-    except (ImportError, OSError):
-        return None, None
-
-
-def _crop_display_width(width: int | None) -> int:
-    if width is None:
-        return 96
-    return max(64, min(width, 128))
+        data = crop.path.read_bytes()
+        b64 = base64.b64encode(data).decode("ascii")
+        suffix = crop.path.suffix.lstrip(".") or "png"
+        return f'<div class="crop"><img src="data:image/{suffix};base64,{b64}" alt="crop {crop.tile_id}"/></div>'
+    except OSError:
+        return '<div class="crop empty">read error</div>'
 
 
-def _ratio_label(value: float) -> str:
-    if math.isinf(value):
-        return "inf"
-    return f"{value:.1f}:1"
+def _reasoning_block_html(vlm: dict[str, Any]) -> str:
+    if not vlm:
+        return (
+            '<div class="reason-block no-liquid">'
+            '<div class="label">Onboard reasoner</div>'
+            'Liquid LFM disabled for this pass — alert metadata is detector-only.'
+            "</div>"
+        )
+    is_real = bool(vlm.get("reasoner_is_real"))
+    label_suffix = "LIQUID LFM2-VL · LIVE" if is_real else "LIQUID · MOCK"
+    visual = escape(str(vlm.get("visual_summary") or "")).strip() or "—"
+    risk_text = escape(str(vlm.get("risk_reasoning") or "")).strip() or "—"
+    confidence_note = escape(str(vlm.get("confidence_note") or "")).strip()
+    confidence_html = (
+        f'<div style="color: var(--kw-muted); margin-top: 6px; font-size: 11px;">{confidence_note}</div>'
+        if confidence_note
+        else ""
+    )
+    return (
+        f'<div class="reason-block">'
+        f'<div class="label">{label_suffix}</div>'
+        f'<div><strong>Visual:</strong> {visual}</div>'
+        f'<div style="margin-top:4px;"><strong>Risk:</strong> {risk_text}</div>'
+        f"{confidence_html}"
+        "</div>"
+    )
 
 
-def _format_int(value: int) -> str:
-    return f"{value:,}"
+def _render_downlink_chart(telemetry: list[dict[str, Any]], metrics: Any) -> None:
+    series = cumulative_series(telemetry)
+    if not series:
+        return
+    st.markdown(
+        f"""
+        <section class="kw-section">
+          <h2>Cumulative downlink</h2>
+          <span class="meta">raw onboard ({format_bytes(metrics.raw_bytes_processed)}) vs downlinked ({format_bytes(metrics.downlinked_bytes)})</span>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+    raw_total = max(1, series[-1].get("Raw bytes processed in orbit", 1))
+    rows_html = ['<div class="kw-chart-row"><span>Tile</span><span>Raw cumulative</span><span>Downlinked cumulative</span><span>Saved</span></div>']
+    for point in series:
+        raw = int(point.get("Raw bytes processed in orbit", 0))
+        dl = int(point.get("Bytes downlinked", 0))
+        saved = max(0, raw - dl)
+        raw_pct = max(0.0, min(100.0, (raw / raw_total) * 100))
+        dl_pct = max(0.0, min(100.0, (dl / raw_total) * 100))
+        tile_id = str(point.get("tile_id", ""))[:14]
+        rows_html.append(
+            f'<div class="kw-chart-row">'
+            f'<span class="meta">{escape(tile_id)}</span>'
+            f'<span class="bar raw"><div style="width:{raw_pct:.1f}%"></div></span>'
+            f'<span class="bar dl"><div style="width:{dl_pct:.1f}%"></div></span>'
+            f'<span class="meta">{escape(format_bytes(saved))}</span>'
+            "</div>"
+        )
+    st.markdown(
+        f'<section class="kw-chart">{"".join(rows_html)}</section>',
+        unsafe_allow_html=True,
+    )
 
 
-def _confidence_label(value: Any) -> str:
+def _render_diagnostics(
+    payloads: list[dict[str, Any]],
+    telemetry: list[dict[str, Any]],
+    status: Any,
+) -> None:
+    with st.expander("Diagnostics — raw payload + telemetry (for judge inspection)", expanded=False):
+        st.markdown(
+            "**Boundary check:** the dashboard reads only `transmission_queue/*.json`, "
+            "`transmission_queue/telemetry.jsonl`, and crop files inside `transmission_queue/crops/`. "
+            "Raw onboard tile folders are never opened here.",
+            unsafe_allow_html=False,
+        )
+        st.markdown("---")
+        st.markdown("**Truth metadata** (single source for honesty chips above):")
+        st.json(status.truth_fields)
+        st.markdown("---")
+        if payloads:
+            tile_ids = [p.get("tile_id", "?") for p in payloads]
+            chosen = st.selectbox("Inspect a payload JSON", tile_ids, index=0)
+            for p in payloads:
+                if p.get("tile_id") == chosen:
+                    st.json({k: v for k, v in p.items() if not k.startswith("_")})
+                    break
+        st.markdown("---")
+        st.markdown(f"**Telemetry stream** ({len(telemetry)} events)")
+        if telemetry:
+            st.code(
+                "\n".join(json.dumps(e, sort_keys=True)[:400] + ("…" if len(json.dumps(e)) > 400 else "") for e in telemetry[-12:]),
+                language="json",
+            )
+
+
+def _render_empty_state() -> None:
+    st.markdown(
+        """
+        <div class="kw-empty">
+          <h2>No transmission queue artifacts found</h2>
+          <p>The ground station only displays what the satellite chose to downlink. Run the orbital pass first:</p>
+          <code>python -m satellite_edge_node.orbital_pass \\<br>
+          &nbsp;&nbsp;--raw-tiles data/final_demo_tiles \\<br>
+          &nbsp;&nbsp;--detector yolo --reasoner liquid-local \\<br>
+          &nbsp;&nbsp;--require-crops --reset-queue</code>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ────────────────────────────────────────────────────────────
+# Helpers
+# ────────────────────────────────────────────────────────────
+
+
+def _detector_chip(status: Any, sample: bool) -> str:
+    label = status.detector_label
+    if sample:
+        return '<span class="kw-chip warn"><span class="pip"></span>SAMPLE FIXTURES</span>'
+    if label == "STRICT YOLO REAL":
+        return '<span class="kw-chip good"><span class="pip"></span>STRICT YOLO</span>'
+    if label == "FALLBACK USED":
+        return '<span class="kw-chip warn"><span class="pip"></span>FALLBACK</span>'
+    if label == "BASELINE SIMULATION":
+        return '<span class="kw-chip warn"><span class="pip"></span>BASELINE SIM</span>'
+    if label == "MIXED DETECTOR METADATA":
+        return '<span class="kw-chip warn"><span class="pip"></span>MIXED MODES</span>'
+    return f'<span class="kw-chip muted"><span class="pip"></span>{escape(label)}</span>'
+
+
+def _liquid_chip(statuses: set) -> str:
+    if "liquid-real" in statuses:
+        return '<span class="kw-chip liquid"><span class="pip"></span>LFM2-VL · LIVE</span>'
+    if "liquid-mock" in statuses:
+        return '<span class="kw-chip warn"><span class="pip"></span>LIQUID · MOCK</span>'
+    return '<span class="kw-chip muted"><span class="pip"></span>LFM DISABLED</span>'
+
+
+def _liquid_label_and_class(statuses: set) -> tuple[str, str]:
+    if "liquid-real" in statuses:
+        return "LIQUID LFM2-VL · LIVE", "liquid"
+    if "liquid-mock" in statuses:
+        return "LIQUID · MOCK", "warn"
+    return "DISABLED", "muted"
+
+
+def _confidence_pct(value: Any) -> str:
     try:
         numeric = float(value)
     except (TypeError, ValueError):
-        return ""
-    return f"{numeric:.2f}" if numeric <= 1 else f"{numeric:.0f}"
-
-
-def _raw_bytes(event: dict[str, Any]) -> int:
-    try:
-        return int(event.get("raw_bytes_processed", event.get("original_payload_bytes", 0)))
-    except (TypeError, ValueError):
-        return 0
-
-
-def _safe_int(value: Any) -> int:
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return 0
-
-
-def _percent(value: int, total: int) -> float:
-    if total <= 0:
-        return 0.0
-    return max(0.0, min((value / total) * 100, 100.0))
+        return "—"
+    if numeric <= 1:
+        return f"{numeric * 100:.0f}%"
+    return f"{numeric:.0f}%"
 
 
 if __name__ == "__main__":
