@@ -515,7 +515,7 @@ def _render_hero(status: Any, statuses: set[str], sample_data: bool) -> None:
     ]
     if sample_data:
         chips.append(_chip("SAMPLE DATA", "warn"))
-    st.markdown(
+    _html(
         f"""
         <header class="kw-hero">
           <div class="kw-kicker">Ground Station Console — Mission Replay</div>
@@ -527,8 +527,7 @@ def _render_hero(status: Any, statuses: set[str], sample_data: bool) -> None:
           </p>
           <div class="kw-chip-row">{''.join(chips)}</div>
         </header>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
     cols = st.columns([1, 1, 4])
@@ -537,9 +536,8 @@ def _render_hero(status: Any, statuses: set[str], sample_data: bool) -> None:
             st.cache_data.clear()
             st.rerun()
     with cols[1]:
-        st.markdown(
-            f"<div style='padding:14px 0; color:var(--muted); font-size:10.5px; letter-spacing:1.4px; text-transform:uppercase'>Queue loaded · {len(statuses)} reasoner state(s)</div>",
-            unsafe_allow_html=True,
+        _html(
+            f"<div style='padding:14px 0; color:var(--muted); font-size:10.5px; letter-spacing:1.4px; text-transform:uppercase'>Queue loaded · {len(statuses)} reasoner state(s)</div>"
         )
 
 
@@ -565,21 +563,19 @@ def _render_proof_status(status: Any, statuses: set[str], artifacts: Any) -> Non
         ("telemetry", "present" if artifacts.telemetry_files else "missing", "telemetry.jsonl status", "good" if artifacts.telemetry_files else "warn"),
     ]
     _section_head("Proof Status", "driven by payload + telemetry metadata")
-    st.markdown(
+    _html(
         '<div class="kw-grid cols-4">'
         + "".join(_metric_card(label, value, note, cls) for label, value, note, cls in cards)
-        + "</div>",
-        unsafe_allow_html=True,
+        + "</div>"
     )
     if "liquid-real-invalid" in statuses:
-        st.markdown(
+        _html(
             """
             <div class="kw-callout warn" style="margin-top:14px;">
               <strong>Liquid call succeeded; structured parse failed for one or more tiles.</strong>
               The dashboard does not call this structured reasoning. Raw model output is shown as evidence below.
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
 
 
@@ -588,7 +584,7 @@ def _render_mission_metrics(metrics: Any, counts: Any) -> None:
     ratio = "inf" if metrics.compression_ratio == float("inf") else f"{metrics.compression_ratio:.2f}×"
     _section_head("Mission Metrics", "no payload + telemetry double-counting")
 
-    st.markdown(
+    _html(
         f"""
         <div class="kw-metrics-hero">
           <div class="kw-card feature">
@@ -615,8 +611,7 @@ def _render_mission_metrics(metrics: Any, counts: Any) -> None:
             <div class="note">unique non-IGNORE tiles</div>
           </div>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
     secondary = [
@@ -626,11 +621,10 @@ def _render_mission_metrics(metrics: Any, counts: Any) -> None:
         ("Crops generated", f"{counts.crops_generated:,}", "real PNG files", ""),
         ("Full tiles written", f"{counts.full_tiles_generated:,}/{counts.full_downlinks:,}", "written / requested", ""),
     ]
-    st.markdown(
+    _html(
         '<div class="kw-grid cols-5" style="margin-top:14px">'
         + "".join(_metric_card(label, value, note, cls) for label, value, note, cls in secondary)
-        + "</div>",
-        unsafe_allow_html=True,
+        + "</div>"
     )
 
 
@@ -662,7 +656,7 @@ def _render_gate_panel(gates: dict[str, int]) -> None:
             """
         )
     html.append("</div>")
-    st.markdown("".join(html), unsafe_allow_html=True)
+    _html("".join(html))
 
 
 def _render_tile_replay(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -736,7 +730,7 @@ def _render_tile_replay(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
             """
         )
     table_html.append("</div>")
-    st.markdown("".join(table_html), unsafe_allow_html=True)
+    _html("".join(table_html))
 
     return next((r for r in sorted_rows if r["tile_id"] == selected_id), sorted_rows[0])
 
@@ -747,14 +741,13 @@ def _render_alert_detail(row: dict[str, Any] | None) -> None:
 
     decision = row["triage_decision"]
     action = row.get("transmission_action", "")
-    st.markdown(
+    _html(
         f"""
         <div class="kw-detail-head" style="margin-top:24px">
           <div class="id">Tile <span class="accent">{escape(row['tile_id'])}</span></div>
           <div class="gate-tag">{escape(decision)} · {escape(action)}</div>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
     left, right = st.columns([1.05, 1], gap="large")
@@ -767,9 +760,8 @@ def _render_alert_detail(row: dict[str, Any] | None) -> None:
 
 
 def _render_crop_evidence(row: dict[str, Any]) -> None:
-    st.markdown(
-        '<h4 style="margin:0 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:600">Crop evidence</h4>',
-        unsafe_allow_html=True,
+    _html(
+        '<h4 style="margin:0 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:600">Crop evidence</h4>'
     )
     crop_path = Path(row["crop_path"]) if row.get("crop_path") else None
     if crop_path and crop_path.is_file():
@@ -779,15 +771,13 @@ def _render_crop_evidence(row: dict[str, Any]) -> None:
         st.caption(meta)
         st.image(str(crop_path), use_container_width=True)
     elif row.get("crop_path"):
-        st.markdown(
-            '<div class="kw-callout warn"><strong>Crop reference present, file missing.</strong> The queue does not contain the bytes that were promised.</div>',
-            unsafe_allow_html=True,
+        _html(
+            '<div class="kw-callout warn"><strong>Crop reference present, file missing.</strong> The queue does not contain the bytes that were promised.</div>'
         )
         st.code(str(row.get("crop_path")))
     else:
-        st.markdown(
-            '<div class="kw-callout warn"><strong>No crop transmitted.</strong> Tile was IGNORED onboard. No pixel evidence crossed the boundary.</div>',
-            unsafe_allow_html=True,
+        _html(
+            '<div class="kw-callout warn"><strong>No crop transmitted.</strong> Tile was IGNORED onboard. No pixel evidence crossed the boundary.</div>'
         )
 
 
@@ -797,7 +787,7 @@ def _render_liquid_card(row: dict[str, Any]) -> None:
     reasoning = payload.get("vlm_reasoning") or telemetry.get("vlm_reasoning") or {}
 
     if not isinstance(reasoning, dict) or not reasoning:
-        st.markdown(
+        _html(
             """
             <div class="kw-liquid-card">
               <div class="head">
@@ -806,8 +796,7 @@ def _render_liquid_card(row: dict[str, Any]) -> None:
               </div>
               <div class="reasoning">LFM not invoked for this tile (gate did not require evidence review). Liquid only reasons over crops that crossed the boundary.</div>
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
         return
 
@@ -834,7 +823,7 @@ def _render_liquid_card(row: dict[str, Any]) -> None:
     raw_excerpt = reasoning.get("raw_output_excerpt") or "—"
     model_name = reasoning.get("model_name") or "—"
 
-    st.markdown(
+    _html(
         f"""
         <div class="kw-liquid-card">
           <div class="head">
@@ -845,8 +834,7 @@ def _render_liquid_card(row: dict[str, Any]) -> None:
           <div class="reasoning">{escape(str(risk))}</div>
           <pre class="raw">{escape(str(raw_excerpt))}</pre>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -859,7 +847,7 @@ def _render_kv_panels(row: dict[str, Any]) -> None:
     crop_written = bool(row.get("crop_written"))
     full_written = bool(row.get("full_tile_written"))
 
-    st.markdown(
+    _html(
         f"""
         <div class="kw-kv">
           <h4>Detector evidence (YOLO)</h4>
@@ -877,37 +865,34 @@ def _render_kv_panels(row: dict[str, Any]) -> None:
           <div class="row"><span class="k">crop_written</span><span class="v {'good' if crop_written else 'warn'}">{_fmt_truth(crop_written)}</span></div>
           <div class="row"><span class="k">full_tile_written</span><span class="v {'good' if full_written else 'warn'}">{_fmt_truth(full_written)}</span></div>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
 def _render_json_payload(row: dict[str, Any]) -> None:
     payload = row.get("payload") or {}
     if not payload:
-        st.markdown(
+        _html(
             """
             <h4 style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:600">Raw JSON payload (transmitted)</h4>
             <div class="kw-json-viewer"><pre>// IGNORE tile — no payload crossed the boundary.\n// Telemetry-only event recorded in transmission_queue/telemetry.jsonl</pre></div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
         return
     clean = {k: v for k, v in payload.items() if not k.startswith("_")}
     highlighted = _json_highlight(clean)
-    st.markdown(
+    _html(
         f"""
         <h4 style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:600">Raw JSON payload (transmitted)</h4>
         <div class="kw-json-viewer"><pre>{highlighted}</pre></div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
 def _render_queue_panel(artifacts: Any) -> None:
     _section_head("Transmission Queue", "the only boundary the ground station can see")
     tree_html = _queue_tree_html(artifacts)
-    st.markdown(
+    _html(
         f"""
         <div class="kw-grid cols-2" style="background:transparent;border:0">
           <div style="background:var(--panel);padding:18px;border:1px solid var(--border-soft)">
@@ -930,14 +915,13 @@ def _render_queue_panel(artifacts: Any) -> None:
             </div>
           </div>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
 def _render_run_panel() -> None:
     _section_head("Run Locally", "commands used to regenerate this queue")
-    st.markdown(
+    _html(
         """
         <div class="kw-grid cols-2" style="background:transparent;border:0;gap:14px">
           <div class="kw-cmd-card">
@@ -980,8 +964,7 @@ jq -s '{
 }' transmission_queue/*.json</pre>
           </div>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -998,7 +981,7 @@ def _render_honesty_panel(status: Any, statuses: set[str], sample_data: bool) ->
         liquid_line = "<b>Liquid call status</b> is unverified for this queue."
 
     _section_head("Technical Honesty", "what this demo is and is not")
-    st.markdown(
+    _html(
         f"""
         <div class="kw-honesty">
           <div>
@@ -1022,8 +1005,7 @@ def _render_honesty_panel(status: Any, statuses: set[str], sample_data: bool) ->
             </ul>
           </div>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -1043,19 +1025,18 @@ def _render_diagnostics(payloads: list[dict[str, Any]], telemetry: list[dict[str
 
 
 def _render_footer() -> None:
-    st.markdown(
+    _html(
         """
         <div class="kw-foot">
           <span>KILNWATCH · GROUND STATION GS-01 · MISSION REPLAY</span>
           <span>DETECT BEFORE DOWNLINK <span class="accent">·</span> REASON BEFORE REVIEW <span class="accent">·</span> SEND EVIDENCE INSTEAD OF EMPTY FIELDS</span>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
 def _render_empty_state() -> None:
-    st.markdown(
+    _html(
         """
         <header class="kw-hero">
           <div class="kw-kicker">Ground Station Console — Mission Replay</div>
@@ -1076,8 +1057,7 @@ def _render_empty_state() -> None:
 
         streamlit run app.py
         ```
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -1085,7 +1065,7 @@ def _render_empty_state() -> None:
 
 
 def _section_head(title: str, meta: str) -> None:
-    st.markdown(
+    _html(
         f"""
         <div class="kw-section">
           <div class="kw-sec-head">
@@ -1093,8 +1073,7 @@ def _section_head(title: str, meta: str) -> None:
             <span class="meta">{escape(meta)}</span>
           </div>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
