@@ -52,7 +52,7 @@
 >
 > **Layer two — visual detection.** A YOLO detector trained on optical brick-kiln imagery. When this runs, it loads `models/brick_kiln_yolo.pt` and emits real bounding boxes — not a stub, not a simulation. If the weights are missing, the run *fails loudly.* No silent fallback. I made that an architectural invariant.
 >
-> **Layer three — Liquid edge reasoning.** This is the Liquid layer. After YOLO finds a candidate, the pipeline crops the image around that bounding box and hands the crop to **LiquidAI/LFM2.5-VL-450M**, running locally through `transformers.AutoModelForImageTextToText`. Liquid produces structured JSON: what it visually sees, why it does or doesn't look concerning, a compliance risk band, whether a human reviewer should take a closer look.
+> **Layer three — Liquid edge reasoning.** This is the Liquid layer. After YOLO finds a candidate and the triage tier requires visual evidence, the pipeline crops the image around that bounding box and hands the generated crop to **LiquidAI/LFM2.5-VL-450M**, running locally through `transformers.AutoModelForImageTextToText`. When the model output parses as expected JSON, the alert records what it visually sees, why it does or doesn't look concerning, a compliance risk band, and whether a human reviewer should take a closer look. If parsing fails, the dashboard says that plainly.
 >
 > Together, those three layers feed a four-tier triage decision: `IGNORE`, `JSON_ALERT_ONLY`, `CROP_OR_REVIEW`, or `FULL_DOWNLINK`. Only the alerts and crops 'go down the wire' — in this prototype, that wire is the local `transmission_queue/` folder, which is the only thing the dashboard is allowed to read."
 
@@ -67,7 +67,7 @@ python -m satellite_edge_node.orbital_pass \
 
 (Wait for it to finish.)
 
-> "Fourteen raw tiles in. Five real alerts out. **1.1 megabytes of imagery becomes 9.5 kilobytes of evidence.** That's 116× compression. **Five out of five alerts carry real Liquid VLM reasoning** — not a label, an actual paragraph from a 450M-parameter vision model."
+> "Fourteen raw tiles in. Five real alerts out. **1.1 megabytes of imagery becomes 11.7 kilobytes of evidence.** That's 94.38× compression. Liquid review is judge-safe because each payload says whether the call was real, whether the structured parse was valid, and whether the model reasoned over the generated crop."
 
 ---
 
@@ -90,6 +90,9 @@ python -m satellite_edge_node.orbital_pass \
   "compliance_risk":     "low|medium|high",
   "human_review_needed": true,
   "confidence_note":     "...",
+  "reasoner_output_valid": true,
+  "reasoned_over":       "crop",
+  "crop_path_used":      "transmission_queue/crops/...",
   "reasoner_is_real":    true,
   "model_name":          "LiquidAI/LFM2.5-VL-450M"
 }
@@ -153,7 +156,7 @@ python scripts/check_model_ready.py --json
 - "So I built an AI for it."
 - "Don't waste downlink on empty fields."
 - "1.1 megabytes of imagery becomes 9.5 kilobytes of evidence."
-- "Five out of five alerts carry real Liquid VLM reasoning."
+- "Payloads prove whether each Liquid call was real, valid structured JSON, and run over the generated crop."
 - "The alerts have reasoning, not labels."
 - "Honesty over hype."
 
@@ -163,9 +166,9 @@ python scripts/check_model_ready.py --json
 |---|---|
 | 14 tiles processed | `transmission_queue/telemetry.jsonl` line count |
 | 5 alerts | `ls transmission_queue/*.json \| wc -l` |
-| ~1.1 MB raw → ~9.5 KB downlinked | sum of `byte_accounting` in payloads |
-| ~116× compression | dashboard hero metric |
-| 99.1% bandwidth saved | dashboard hero metric |
+| ~1.1 MB raw → ~11.7 KB downlinked | sum of `byte_accounting` in telemetry |
+| ~94× compression | dashboard hero metric |
+| 98.9% bandwidth saved | dashboard hero metric |
 | 66 tests passing | `pytest -q` |
 | LiquidAI/LFM2.5-VL-450M | `vlm_reasoning.model_name` in any alert JSON |
 

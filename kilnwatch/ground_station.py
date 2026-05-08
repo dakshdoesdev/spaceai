@@ -47,6 +47,20 @@ class ProofStatus:
 class MissionProofCounts:
     detections: int
     crops_generated: int
+    ignored_tiles: int = 0
+    json_alerts: int = 0
+    crop_or_review_alerts: int = 0
+    full_downlinks: int = 0
+    full_tiles_generated: int = 0
+
+
+@dataclass(frozen=True)
+class QueueArtifactSummary:
+    queue_dir: str
+    payload_files: tuple[str, ...]
+    crop_files: tuple[str, ...]
+    full_tile_files: tuple[str, ...]
+    telemetry_files: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -173,10 +187,79 @@ def mission_proof_counts(
     events: list[dict[str, Any]],
     queue_dir: Path = TRANSMISSION_QUEUE_DIR,
 ) -> MissionProofCounts:
-    items = [*payloads, *events]
-    detections = sum(1 for item in items if _is_detection(item))
-    crops_generated = sum(1 for evidence in resolve_crop_evidence(payloads, events, queue_dir) if evidence.available)
-    return MissionProofCounts(detections=detections, crops_generated=crops_generated)
+    rows = tile_replay_rows(payloads, events, queue_dir)
+    detections = sum(1 for row in rows if row["triage_decision"] != "IGNORE")
+    crops_generated = sum(1 for row in rows if row["crop_written"])
+    full_tiles_generated = sum(1 for row in rows if row["full_tile_written"])
+    return MissionProofCounts(
+        detections=detections,
+        crops_generated=crops_generated,
+        ignored_tiles=sum(1 for row in rows if row["triage_decision"] == "IGNORE"),
+        json_alerts=sum(1 for row in rows if row["triage_decision"] == "JSON_ALERT_ONLY"),
+        crop_or_review_alerts=sum(1 for row in rows if row["triage_decision"] == "CROP_OR_REVIEW"),
+        full_downlinks=sum(1 for row in rows if row["triage_decision"] == "FULL_DOWNLINK"),
+        full_tiles_generated=full_tiles_generated,
+    )
+
+
+def gate_counts(payloads: list[dict[str, Any]], events: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {
+        "IGNORE": 0,
+        "JSON_ALERT_ONLY": 0,
+        "CROP_OR_REVIEW": 0,
+        "FULL_DOWNLINK": 0,
+    }
+    for row in tile_replay_rows(payloads, events):
+        decision = row["triage_decision"]
+        if decision in counts:
+            counts[decision] += 1
+    return counts
+
+
+def queue_artifact_summary(queue_dir: Path = TRANSMISSION_QUEUE_DIR) -> QueueArtifactSummary:
+    payload_files = sorted(path.name for path in queue_dir.glob("*.json")) if queue_dir.exists() else []
+    crop_dir = queue_dir / "crops"
+    full_tile_dir = queue_dir / "full_tiles"
+    telemetry_files = sorted(path.name for path in queue_dir.glob("*.jsonl")) if queue_dir.exists() else []
+    crop_files = sorted(path.name for path in crop_dir.glob("*") if path.is_file()) if crop_dir.exists() else []
+    full_tile_files = (
+        sorted(path.name for path in full_tile_dir.glob("*") if path.is_file())
+        if full_tile_dir.exists()
+        else []
+    )
+    return QueueArtifactSummary(
+        queue_dir=str(queue_dir),
+        payload_files=tuple(payload_files),
+        crop_files=tuple(crop_files),
+        full_tile_files=tuple(full_tile_files),
+        telemetry_files=tuple(telemetry_files),
+    )
+
+
+def tile_replay_rows(
+    payloads: list[dict[str, Any]],
+    events: list[dict[str, Any]],
+    queue_dir: Path = TRANSMISSION_QUEUE_DIR,
+) -> list[dict[str, Any]]:
+    """Build one ground-station row per processed tile without double-counting."""
+    payload_by_tile = {payload.get("tile_id"): payload for payload in payloads if payload.get("tile_id")}
+    rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    for event in events:
+        tile_id = str(event.get("tile_id") or "")
+        if not tile_id:
+            continue
+        payload = payload_by_tile.get(tile_id, {})
+        rows.append(_tile_replay_row(tile_id, payload, event, queue_dir))
+        seen.add(tile_id)
+
+    for tile_id, payload in payload_by_tile.items():
+        if str(tile_id) in seen:
+            continue
+        rows.append(_tile_replay_row(str(tile_id), payload, {}, queue_dir))
+
+    return rows
 
 
 def resolve_crop_evidence(
@@ -234,7 +317,12 @@ def reasoner_statuses(payloads: list[dict[str, Any]], events: list[dict[str, Any
         mode = str(reasoning.get("reasoner_mode") or "").lower()
         is_real = bool(reasoning.get("reasoner_is_real"))
         if is_real:
-            statuses.add("liquid-real")
+            if reasoning.get("reasoner_output_valid") is True:
+                statuses.add("liquid-real")
+            elif reasoning.get("reasoner_output_valid") is False:
+                statuses.add("liquid-real-invalid")
+            else:
+                statuses.add("liquid-real-unverified")
         elif mode == "liquid-mock":
             statuses.add("liquid-mock")
         elif mode:
@@ -339,7 +427,16 @@ def _truth_fields(items: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _reasoner_truth_fields(items: list[dict[str, Any]]) -> dict[str, Any]:
-    keys = ("reasoner_mode", "reasoner_is_real", "model_name")
+    keys = (
+        "reasoner_mode",
+        "reasoner_is_real",
+        "reasoner_output_valid",
+        "model_name",
+        "reasoned_over",
+        "crop_path_used",
+        "source_tile_reasoning",
+        "raw_output_excerpt",
+    )
     fields: dict[str, Any] = {}
     reasonings = [item.get("vlm_reasoning") for item in items if isinstance(item.get("vlm_reasoning"), dict)]
     for key in keys:
@@ -372,8 +469,12 @@ def _detector_label(items: list[dict[str, Any]], *, sample_data: bool) -> str:
 
 def _reasoner_label(items: list[dict[str, Any]]) -> str:
     statuses = reasoner_statuses([], items)
+    if "liquid-real-invalid" in statuses:
+        return "LIQUID LFM PARSE FAILED"
+    if "liquid-real-unverified" in statuses:
+        return "LIQUID LFM UNVERIFIED"
     if "liquid-real" in statuses:
-        return "LIQUID LFM REAL"
+        return "LIQUID LFM STRUCTURED"
     if "liquid-mock" in statuses:
         return "LIQUID MOCK"
     return "LFM DISABLED"
@@ -409,7 +510,97 @@ def _with_telemetry_crop_reference(
     return merged
 
 
+def _tile_replay_row(
+    tile_id: str,
+    payload: dict[str, Any],
+    event: dict[str, Any],
+    queue_dir: Path,
+) -> dict[str, Any]:
+    item = {**event, **payload}
+    decision = _decision(item) or _decision(event) or _decision(payload) or "UNKNOWN"
+    crop_field, crop_value = _crop_reference(item)
+    crop_path = _safe_crop_path(crop_value, queue_dir) if crop_value else None
+    full_tile_field, full_tile_value = _full_tile_reference(item)
+    full_tile_path = _safe_queue_path(full_tile_value, queue_dir) if full_tile_value else None
+    reasoning = item.get("vlm_reasoning") if isinstance(item.get("vlm_reasoning"), dict) else {}
+    byte_accounting = item.get("byte_accounting") if isinstance(item.get("byte_accounting"), dict) else {}
+    raw_bytes = _raw_bytes(item) or _as_int(byte_accounting.get("original_payload_bytes"))
+    transmitted_bytes = _downlinked_bytes(item) or _as_int(byte_accounting.get("transmitted_payload_bytes"))
+    return {
+        "tile_id": tile_id,
+        "triage_decision": decision,
+        "transmission_action": _transmission_action_label(decision, item),
+        "confidence": _as_float(item.get("confidence")),
+        "compliance_risk": item.get("compliance_risk", ""),
+        "detector_mode": item.get("detector_mode", ""),
+        "detector_is_real": item.get("detector_is_real"),
+        "simulated": item.get("simulated"),
+        "fallback_used": bool(item.get("fallback_used")),
+        "reasoner_status": _reasoner_status_label(reasoning),
+        "reasoner_mode": reasoning.get("reasoner_mode") if reasoning else None,
+        "reasoner_is_real": reasoning.get("reasoner_is_real") if reasoning else None,
+        "reasoner_output_valid": reasoning.get("reasoner_output_valid") if reasoning else None,
+        "reasoned_over": reasoning.get("reasoned_over") if reasoning else None,
+        "model_name": reasoning.get("model_name") if reasoning else None,
+        "raw_bytes": raw_bytes,
+        "transmitted_bytes": transmitted_bytes,
+        "crop_written": bool(crop_path and crop_path.is_file() and crop_path.stat().st_size > 0),
+        "crop_path": str(crop_path) if crop_path else None,
+        "crop_source_field": crop_field,
+        "full_tile_written": bool(full_tile_path and full_tile_path.is_file() and full_tile_path.stat().st_size > 0),
+        "full_tile_path": str(full_tile_path) if full_tile_path else None,
+        "full_tile_source_field": full_tile_field,
+        "bbox": item.get("bbox"),
+        "payload_present": bool(payload),
+        "payload": payload,
+        "telemetry": event,
+    }
+
+
+def _transmission_action_label(decision: str, item: dict[str, Any]) -> str:
+    action = str(item.get("action") or "")
+    if action:
+        return action
+    if decision == "IGNORE":
+        return "TELEMETRY_ONLY"
+    if decision == "JSON_ALERT_ONLY":
+        return "TRANSMIT_JSON_ONLY"
+    if decision == "CROP_OR_REVIEW":
+        return "TRANSMIT_ALERT_CROP"
+    if decision == "FULL_DOWNLINK":
+        return "TRANSMIT_FULL_TILE"
+    return "UNKNOWN"
+
+
+def _reasoner_status_label(reasoning: dict[str, Any]) -> str:
+    if not reasoning:
+        return "LFM DISABLED"
+    mode = str(reasoning.get("reasoner_mode") or "").lower()
+    is_real = bool(reasoning.get("reasoner_is_real"))
+    if is_real and reasoning.get("reasoner_output_valid") is True:
+        return "LIQUID STRUCTURED"
+    if is_real and reasoning.get("reasoner_output_valid") is False:
+        return "LIQUID PARSE FAILED"
+    if is_real:
+        return "LIQUID UNVERIFIED"
+    if mode == "liquid-mock":
+        return "LIQUID MOCK"
+    return mode.upper() if mode else "LFM DISABLED"
+
+
+def _full_tile_reference(item: dict[str, Any]) -> tuple[str | None, str | None]:
+    for field in ("full_tile_ref", "full_tile_path"):
+        value = item.get(field)
+        if value:
+            return field, str(value)
+    return None, None
+
+
 def _safe_crop_path(value: str, queue_dir: Path) -> Path | None:
+    return _safe_queue_path(value, queue_dir)
+
+
+def _safe_queue_path(value: str, queue_dir: Path) -> Path | None:
     normalized_value = value.replace("\\", "/")
     if normalized_value.endswith(".tile"):
         return None

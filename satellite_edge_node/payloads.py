@@ -45,10 +45,10 @@ def triage_label(
 ) -> dict[str, Any]:
     """Compute the 4-tier transmission priority that drives the satellite gate.
 
-    Decision is derived from kiln_detected + detector confidence + risk band (Liquid's
-    band when available, else the detector's own band). `min_confidence` should match
-    the detector's gating threshold so the IGNORE band is consistent with the detector's
-    own filtering.
+    Decision is derived from kiln_detected + detector confidence + risk band. The
+    orbital-pass path computes this before Liquid so crop-level reasoning cannot
+    retroactively change what downlinks; the `vlm_reasoning` parameter remains for
+    older direct callers that explicitly want to score with a reasoner band.
     """
     risk_band = (
         vlm_reasoning.compliance_risk
@@ -195,10 +195,16 @@ def build_transmission_payload(
     *,
     triage_min_confidence: float = 0.25,
     full_tile_artifact: FullTileArtifact | None = None,
+    triage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     truth = _truth_metadata(detection)
-    triage = triage_label(detection, vlm_reasoning, min_confidence=triage_min_confidence)
-    decision = triage["decision"]
+    resolved_triage = _resolved_triage(
+        detection,
+        vlm_reasoning,
+        triage=triage,
+        min_confidence=triage_min_confidence,
+    )
+    decision = resolved_triage["decision"]
     action = transmission_action_for(decision)
 
     # IGNORE — drop, no payload (this branch is normally not reached because
@@ -210,7 +216,7 @@ def build_transmission_payload(
             "tile_id": detection.tile_id,
             "action": action,
             "triage_decision": decision,
-            "triage": triage,
+            "triage": resolved_triage,
             **truth,
         }
         _attach_vlm_reasoning(payload, vlm_reasoning)
@@ -232,7 +238,7 @@ def build_transmission_payload(
         "source_tile_name": tile_path.name,
         "action": action,
         "triage_decision": decision,
-        "triage": triage,
+        "triage": resolved_triage,
         "coordinates": detection.coordinates,
         "confidence": detection.confidence,
         "compliance_risk": detection.compliance_risk,
@@ -307,9 +313,15 @@ def telemetry_record(
     full_tile_payload_bytes: int = 0,
     full_tile_path: Path | None = None,
     full_tile_error: str | None = None,
+    triage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    triage = triage_label(detection, vlm_reasoning, min_confidence=triage_min_confidence)
-    decision = triage["decision"]
+    resolved_triage = _resolved_triage(
+        detection,
+        vlm_reasoning,
+        triage=triage,
+        min_confidence=triage_min_confidence,
+    )
+    decision = resolved_triage["decision"]
     action = transmission_action_for(decision)
     record = {
         "tile_id": detection.tile_id,
@@ -330,7 +342,7 @@ def telemetry_record(
         "compression_ratio": compression_ratio(original_payload_bytes, transmitted_payload_bytes),
         "action": action,
         "triage_decision": decision,
-        "triage": triage,
+        "triage": resolved_triage,
         "kiln_detected": detection.kiln_detected,
         "confidence": detection.confidence,
         "compliance_risk": detection.compliance_risk,
@@ -356,6 +368,18 @@ def _truth_metadata(detection: DetectionResult) -> dict[str, Any]:
     if detection.fallback_reason:
         payload["fallback_reason"] = detection.fallback_reason
     return payload
+
+
+def _resolved_triage(
+    detection: DetectionResult,
+    vlm_reasoning: VlmReasoning | None,
+    *,
+    triage: dict[str, Any] | None,
+    min_confidence: float,
+) -> dict[str, Any]:
+    if triage is not None:
+        return dict(triage)
+    return triage_label(detection, vlm_reasoning, min_confidence=min_confidence)
 
 
 def _attach_vlm_reasoning(payload: dict[str, Any], vlm_reasoning: VlmReasoning | None) -> None:

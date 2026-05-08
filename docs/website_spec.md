@@ -105,7 +105,7 @@ Each panel below: the **text on screen** (exact copy, short), then the **visual 
 > A YOLO detector on optical brick-kiln imagery. Real bounding boxes. If the weights are missing, the run fails loudly. No silent fallback.
 
 > **Layer 3 — Liquid edge reasoning.**
-> After YOLO finds a candidate, the crop goes to **LFM2.5-VL-450M** running locally. It returns structured JSON: what it sees, why it looks risky or not, whether a human should review it.
+> After YOLO finds a candidate and the triage tier requires visual evidence, the generated crop goes to **LFM2.5-VL-450M** running locally. The payload calls the output structured only when `reasoner_output_valid=true`; otherwise it says the Liquid call succeeded but structured parsing failed.
 
 **Visual:**
 - Three stacked horizontal bands, like cross-sections of a satellite.
@@ -118,7 +118,7 @@ Each panel below: the **text on screen** (exact copy, short), then the **visual 
 ### Panel 6 — The triage decision
 
 **Text:**
-> "Each tile gets one of four labels, derived from YOLO confidence and the Liquid risk band:
+> "Each tile gets one of four labels, derived from YOLO confidence and detector risk before any crop-level Liquid annotation:
 >
 > `IGNORE` · `JSON_ALERT_ONLY` · `CROP_OR_REVIEW` · `FULL_DOWNLINK`
 >
@@ -135,12 +135,12 @@ Each panel below: the **text on screen** (exact copy, short), then the **visual 
 **Text:**
 > "Last run, on the demo set:
 > **14 tiles in. 5 alerts out.**
-> **1.1 MB → 9.5 KB**.
-> **116× compression. ~99% bandwidth saved.**
-> All five alerts carry real Liquid VLM reasoning — not a label, an actual paragraph from a 450M-parameter vision model."
+> **1.1 MB → 11.7 KB**.
+> **94× compression. 98.9% bandwidth saved.**
+> Alerts expose Liquid validity fields, so the page can distinguish valid structured crop reasoning from a real Liquid call whose structured parse failed."
 
 **Visual:**
-- Big counters that animate up to their final values as the panel comes into view: `14`, `5`, `1.1 MB`, `9.5 KB`, `116×`, `99.1%`.
+- Big counters that animate up to their final values as the panel comes into view: `14`, `5`, `1.1 MB`, `11.7 KB`, `94×`, `98.9%`.
 - Numbers should pull live (or at least at build time) from `transmission_queue/telemetry.jsonl` and `transmission_queue/*.json` — never hardcoded into the markup. Stale numbers are worse than no numbers.
 
 ---
@@ -197,10 +197,10 @@ tests/                      ← 66 tests; queue boundary enforced
 
 **Right column — descriptions to write next to each:**
 
-- **`orbital_pass.py`** — the entry point. Walks a folder of raw tiles, asks the detector for boxes, asks the VLM for reasoning on each crop, computes the four-tier triage, writes only what triage says is worth sending.
+- **`orbital_pass.py`** — the entry point. Walks a folder of raw tiles, asks the detector for boxes, computes the four-tier triage, generates crops for review tiers, asks the VLM for reasoning on the generated crop, writes only what triage says is worth sending.
 - **`yolo_detector.py`** — wraps Ultralytics YOLO. Loads `models/brick_kiln_yolo.pt`. If the weights are missing, it raises. There is no silent fallback to a fake detector — that's an architectural invariant, not a config flag.
-- **`liquid_vlm_reasoner.py`** — loads `LiquidAI/LFM2.5-VL-450M` through `transformers.AutoModelForImageTextToText`. Takes a crop, returns structured JSON (`visual_summary`, `risk_reasoning`, `compliance_risk`, `human_review_needed`, `confidence_note`).
-- **`triage.py`** — the four-tier decision: combines YOLO confidence with the Liquid risk band into one of `IGNORE / JSON_ALERT_ONLY / CROP_OR_REVIEW / FULL_DOWNLINK`. Pure function, easy to reason about.
+- **`liquid_vlm_reasoner.py`** — loads `LiquidAI/LFM2.5-VL-450M` through `transformers.AutoModelForImageTextToText`. Takes a crop, decodes only newly generated tokens, and marks whether the response parsed as expected structured JSON (`reasoner_output_valid`).
+- **`triage.py`** — the four-tier decision: uses detector confidence and risk to select `IGNORE / JSON_ALERT_ONLY / CROP_OR_REVIEW / FULL_DOWNLINK` before crop-level Liquid annotation. Pure function, easy to reason about.
 - **`payloads.py`** — turns a detection plus reasoning into a JSON payload + crop PNG, and accounts for the bytes saved vs sent.
 - **`ground_station.py`** — the ground side. Reads only `transmission_queue/`. Cannot, by construction, see a raw tile.
 - **`app.py`** — Streamlit dashboard. Same constraint: it sees what the ground station sees.

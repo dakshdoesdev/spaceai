@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941" role="img" aria-labelledby="title desc">
+  <title id="title">KilnWatch onboard Earth-observation AI workflow</title>
+  <desc id="desc">Mission-control diagram showing satellite edge processing, the transmission queue, and the queue-only ground station.</desc>
+  <defs>
+    <style>
+      .bg { fill: #0b0c0c; }
+      .panel { fill: #111312; stroke: #6a5847; stroke-width: 1.5; }
+      .panel-dashed { fill: #111312; stroke: #e47a3c; stroke-width: 1.6; stroke-dasharray: 8 8; }
+      .card { fill: #171817; stroke: #55483b; stroke-width: 1.4; }
+      .text { fill: #f4ede1; font-family: Georgia, serif; }
+      .mono { fill: #f4ede1; font-family: "SFMono-Regular", "Consolas", monospace; }
+      .muted { fill: #b1a493; font-family: "SFMono-Regular", "Consolas", monospace; }
+      .accent { fill: #e47a3c; }
+      .line { stroke: #f4ede1; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .downlink { stroke: #e47a3c; stroke-width: 3; fill: none; marker-end: url(#arrow-orange); }
+      .thin { stroke: #e47a3c; stroke-width: 1.5; fill: none; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f4ede1"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#e47a3c"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1672" height="941"/>
+  <text class="text" x="196" y="96" font-size="76"><tspan class="accent">KilnWatch</tspan> - Onboard Earth-Observation AI.</text>
+  <text class="text" x="678" y="143" font-size="34" font-style="italic">Detect before downlink.</text>
+  <line class="thin" x1="810" y1="164" x2="862" y2="164"/>
+
+  <rect class="panel-dashed" x="56" y="182" width="566" height="638" rx="18"/>
+  <text class="mono accent" x="240" y="215" font-size="18" letter-spacing="4">ON-SATELLITE EDGE</text>
+
+  <g transform="translate(86 236)">
+    <rect class="card" width="510" height="75" rx="9"/>
+    <rect x="26" y="17" width="45" height="40" rx="4" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <path d="M34 48 L46 34 L57 44 L63 38 L72 52" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <text class="mono accent" x="102" y="32" font-size="22" font-weight="700">1</text>
+    <text class="text" x="130" y="34" font-size="20">Raw tile</text>
+    <text class="muted" x="130" y="59" font-size="14">overhead image tile</text>
+  </g>
+  <g transform="translate(86 334)">
+    <rect class="card" width="510" height="75" rx="9"/>
+    <circle cx="48" cy="38" r="17" fill="none" stroke="#e47a3c" stroke-width="2"/>
+    <path d="M48 12 v14 M48 50 v14 M22 38 h14 M60 38 h14" stroke="#e47a3c" stroke-width="2"/>
+    <text class="mono accent" x="102" y="32" font-size="22" font-weight="700">2</text>
+    <text class="text" x="130" y="34" font-size="20">Strict YOLO detector</text>
+    <text class="muted" x="130" y="59" font-size="14">models/brick_kiln_yolo.pt -> bbox, confidence, risk</text>
+  </g>
+  <g transform="translate(86 432)">
+    <rect class="card" width="510" height="86" rx="9"/>
+    <path d="M26 20 h46 l-22 22 v24 l-12 8 v-32 z" fill="none" stroke="#e47a3c" stroke-width="2"/>
+    <text class="mono accent" x="102" y="31" font-size="22" font-weight="700">3</text>
+    <text class="text" x="130" y="33" font-size="20">4-tier triage gate</text>
+    <text class="muted" x="130" y="59" font-size="14">IGNORE / JSON_ALERT_ONLY /</text>
+    <text class="muted" x="130" y="77" font-size="14">CROP_OR_REVIEW / FULL_DOWNLINK</text>
+  </g>
+  <g transform="translate(86 542)">
+    <rect class="card" width="510" height="70" rx="9"/>
+    <path d="M30 22 h14 M54 22 h14 M30 52 h14 M54 52 h14 M26 26 v14 M72 26 v14" stroke="#f4c795" stroke-width="2" fill="none"/>
+    <text class="mono accent" x="102" y="30" font-size="22" font-weight="700">4</text>
+    <text class="text" x="130" y="32" font-size="20">Crop generation + full-tile copy</text>
+    <text class="muted" x="130" y="57" font-size="14">crop for review, full tile only when required</text>
+  </g>
+  <g transform="translate(86 636)">
+    <rect class="card" width="510" height="70" rx="9"/>
+    <circle cx="48" cy="36" r="19" fill="none" stroke="#e47a3c" stroke-width="2"/>
+    <path d="M48 18 v36 M34 28 h28 M34 44 h28" stroke="#e47a3c" stroke-width="1.6"/>
+    <text class="mono accent" x="102" y="30" font-size="22" font-weight="700">5</text>
+    <text class="text" x="130" y="32" font-size="20">Liquid LFM2.5-VL-450M reasoner</text>
+    <text class="muted" x="130" y="57" font-size="14">annotates the alert, does NOT decide the gate</text>
+  </g>
+  <g transform="translate(86 728)">
+    <rect class="card" width="510" height="68" rx="9"/>
+    <path d="M34 18 h24 l12 12 v28 h-36 z M58 18 v14 h12" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <text class="mono accent" x="102" y="30" font-size="22" font-weight="700">6</text>
+    <text class="text" x="130" y="32" font-size="20">Build payload + byte accounting</text>
+    <text class="muted" x="130" y="56" font-size="14">JSON + artifacts + telemetry</text>
+  </g>
+  <path class="line" d="M134 311 V334"/>
+  <path class="line" d="M134 409 V432"/>
+  <path class="line" d="M134 518 V542"/>
+  <path class="line" d="M134 612 V636"/>
+  <path class="line" d="M134 706 V728"/>
+  <path class="downlink" d="M622 488 H704"/>
+  <text class="mono accent" x="635" y="471" font-size="14">downlink</text>
+
+  <rect class="panel" x="718" y="195" width="332" height="625" rx="15"/>
+  <text class="mono accent" x="775" y="228" font-size="18" letter-spacing="4">TRANSMISSION QUEUE</text>
+  <path d="M806 288 h55 l11 19 h89 a10 10 0 0 1 10 10 v59 a10 10 0 0 1-10 10 h-155 a10 10 0 0 1-10-10 v-78 a20 20 0 0 1 20-20z" fill="none" stroke="#e47a3c" stroke-width="3"/>
+  <g transform="translate(746 380)">
+    <rect class="card" width="276" height="72" rx="9"/>
+    <path d="M23 18 h24 l10 10 v28 h-34 z M47 18 v12 h10" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <text class="mono" x="76" y="36" font-size="18">.json</text>
+    <text class="muted" x="76" y="58" font-size="14">per-tile alert payload</text>
+  </g>
+  <g transform="translate(746 464)">
+    <rect class="card" width="276" height="72" rx="9"/>
+    <rect x="23" y="19" width="34" height="34" rx="3" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <path d="M29 47 L39 35 L48 43 L54 37 L61 50" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <text class="mono" x="76" y="36" font-size="18">crops/.png</text>
+    <text class="muted" x="76" y="58" font-size="14">bbox crop</text>
+  </g>
+  <g transform="translate(746 548)">
+    <rect class="card" width="276" height="72" rx="9"/>
+    <rect x="23" y="19" width="34" height="34" rx="3" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <path d="M29 47 L39 35 L48 43 L54 37 L61 50" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <text class="mono" x="76" y="36" font-size="18">full_tiles/.jpg</text>
+    <text class="muted" x="76" y="58" font-size="14">only on FULL_DOWNLINK</text>
+  </g>
+  <g transform="translate(746 632)">
+    <rect class="card" width="276" height="72" rx="9"/>
+    <path d="M24 18 h32 v40 h-32 z M30 29 h20 M30 40 h20 M30 51 h12" fill="none" stroke="#f4c795" stroke-width="2"/>
+    <text class="mono" x="76" y="36" font-size="18">telemetry.jsonl</text>
+    <text class="muted" x="76" y="58" font-size="14">every tile, kept or dropped</text>
+  </g>
+  <line class="thin" x1="746" y1="729" x2="1022" y2="729"/>
+  <text class="text" x="805" y="766" font-size="20" font-style="italic">the only thing that</text>
+  <text class="text" x="790" y="788" font-size="20" font-style="italic">crosses the boundary.</text>
+
+  <path class="downlink" d="M1058 488 H1154"/>
+  <text class="mono accent" x="1072" y="470" font-size="14">read-only</text>
+
+  <rect class="panel" x="1166" y="195" width="446" height="625" rx="15"/>
+  <text class="mono accent" x="1296" y="228" font-size="18" letter-spacing="4">GROUND STATION</text>
+  <g transform="translate(1188 259)">
+    <rect class="card" width="400" height="113" rx="9"/>
+    <path d="M34 76 a32 32 0 1 1 64 0 M66 44 v20 M44 54 l10 10 M88 54 l-10 10 M66 76 l21-30" fill="none" stroke="#e47a3c" stroke-width="3"/>
+    <text class="text" x="122" y="48" font-size="20">Bandwidth-saved hero metric</text>
+    <text class="muted" x="122" y="78" font-size="14">raw bytes -> downlinked bytes</text>
+  </g>
+  <g transform="translate(1188 391)">
+    <rect class="card" width="400" height="103" rx="9"/>
+    <rect x="34" y="25" width="54" height="54" rx="4" fill="none" stroke="#e47a3c" stroke-width="2.5"/>
+    <path d="M42 70 L54 51 L65 61 L74 45 L84 57" fill="none" stroke="#e47a3c" stroke-width="2"/>
+    <text class="text" x="122" y="45" font-size="20">Alert cards</text>
+    <text class="muted" x="122" y="75" font-size="14">crop + Liquid reasoning + confidence</text>
+  </g>
+  <g transform="translate(1188 515)">
+    <rect class="card" width="400" height="103" rx="9"/>
+    <path d="M60 24 l28 15 v25 c0 18-13 27-28 35-15-8-28-17-28-35V39z" fill="none" stroke="#e47a3c" stroke-width="2.5"/>
+    <path d="M52 62 l8 8 18-22" fill="none" stroke="#e47a3c" stroke-width="2.5"/>
+    <text class="text" x="122" y="45" font-size="20">Honesty chips</text>
+    <text class="muted" x="122" y="75" font-size="14">detector status + Liquid status</text>
+  </g>
+  <g transform="translate(1188 637)">
+    <rect class="card" width="400" height="103" rx="9"/>
+    <rect x="34" y="24" width="54" height="54" rx="2" fill="none" stroke="#e47a3c" stroke-width="2.5"/>
+    <path d="M34 42 h54 M34 60 h54 M52 24 v54 M70 24 v54" stroke="#e47a3c" stroke-width="2"/>
+    <text class="text" x="122" y="45" font-size="20">Telemetry table</text>
+    <text class="muted" x="122" y="75" font-size="14">per-tile mission log</text>
+  </g>
+  <line class="thin" x1="1192" y1="762" x2="1585" y2="762"/>
+  <text class="text" x="1278" y="798" font-size="20" font-style="italic">queue-only dashboard.</text>
+
+  <rect x="39" y="862" width="522" height="50" rx="25" fill="none" stroke="#6a5847" stroke-width="1.4"/>
+  <path d="M73 873 l6 14 14 6-14 6-6 14-6-14-14-6 14-6z" class="accent"/>
+  <text class="mono" x="106" y="895" font-size="16">Built for Liquid AI x DPhi Space</text>
+  <text class="mono accent" x="389" y="895" font-size="16">- AI in Space</text>
+  <rect x="1014" y="862" width="590" height="50" rx="25" fill="none" stroke="#6a5847" stroke-width="1.4"/>
+  <circle cx="1047" cy="887" r="6" class="accent"/>
+  <text class="mono" x="1070" y="895" font-size="16">Local LFM2.5-VL-450M  ·  queue-only ground station</text>
+</svg>

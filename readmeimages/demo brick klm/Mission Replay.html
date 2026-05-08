@@ -1,0 +1,1344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>KilnWatch — Mission Replay · GS-01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0d0c;
+    --bg-2:#0a0b0a;
+    --panel:#141513;
+    --panel-2:#1b1c19;
+    --panel-3:#0f100e;
+    --text:#f4ede1;
+    --muted:#a79b8c;
+    --dim:#7a7164;
+    --border:#34302a;
+    --border-soft:#221f1b;
+    --border-strong:#4a4238;
+    --accent:#e47a3c;
+    --accent-soft:rgba(228,122,60,.16);
+    --accent-line:rgba(228,122,60,.45);
+    --good:#9ec27f;
+    --warn:#e2ae5c;
+    --bad:#d26455;
+    --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --serif:"Instrument Serif", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--mono);
+    background:
+      radial-gradient(1200px 600px at 8% -8%, rgba(228,122,60,.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(228,122,60,.05), transparent 60%),
+      linear-gradient(180deg,#10100f 0%, #070807 100%);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    min-height:100vh;
+  }
+  ::selection{background:var(--accent);color:#0c0d0c}
+
+  .shell{max-width:1400px;margin:0 auto;padding:28px 32px 64px}
+
+  /* Top utility bar */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:10px 14px;border:1px solid var(--border-soft);
+    background:rgba(20,20,18,.6);
+    font-family:var(--mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;
+    color:var(--muted);
+  }
+  .topbar .left{display:flex;align-items:center;gap:14px}
+  .topbar .dot{width:7px;height:7px;border-radius:99px;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  .topbar .right{display:flex;align-items:center;gap:18px}
+  .topbar .right span{display:inline-flex;align-items:center;gap:8px}
+  .topbar .right b{color:var(--text);font-weight:500}
+
+  /* Header */
+  .hero{
+    margin-top:10px;
+    border:1px solid var(--border-soft);
+    background:linear-gradient(180deg, rgba(20,20,18,.92), rgba(14,15,13,.92));
+    padding:34px 36px 30px;
+    position:relative;overflow:hidden;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(transparent 95%, rgba(228,122,60,.07) 96%) 0 0/100% 28px,
+      linear-gradient(90deg, transparent 95%, rgba(228,122,60,.04) 96%) 0 0/28px 100%;
+    mask-image:linear-gradient(180deg, rgba(0,0,0,.7), transparent 70%);
+  }
+  .kicker{
+    color:var(--accent);font-family:var(--mono);font-size:11px;
+    letter-spacing:2.4px;text-transform:uppercase;margin-bottom:14px;
+    display:inline-flex;align-items:center;gap:10px;
+  }
+  .kicker::before{content:"";width:18px;height:1px;background:var(--accent)}
+  h1.title{
+    margin:0;font-family:var(--serif);font-weight:400;
+    font-size:clamp(48px,7vw,96px);line-height:.95;letter-spacing:-.01em;
+    color:var(--text);
+  }
+  h1.title .accent{color:var(--accent);font-style:italic}
+  .subtitle{
+    max-width:760px;color:var(--muted);font-family:var(--mono);
+    font-size:14px;line-height:1.6;margin:18px 0 0;
+  }
+  .hero-row{
+    margin-top:28px;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:end;
+  }
+
+  /* Status chips */
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 11px;border:1px solid var(--border);
+    background:rgba(255,255,255,.02);color:var(--text);
+    font-family:var(--mono);font-size:10.5px;font-weight:600;
+    letter-spacing:1.2px;text-transform:uppercase;border-radius:999px;
+  }
+  .chip::before{content:"";width:6px;height:6px;border-radius:99px;background:currentColor}
+  .chip.good{color:var(--good);border-color:rgba(158,194,127,.45)}
+  .chip.warn{color:var(--warn);border-color:rgba(226,174,92,.5)}
+  .chip.bad{color:var(--bad);border-color:rgba(210,100,85,.5)}
+  .chip.accent{color:var(--accent);border-color:var(--accent-line)}
+
+  /* Big run button */
+  .run{
+    display:inline-flex;align-items:center;gap:14px;
+    padding:16px 22px;border:1px solid var(--accent);
+    background:linear-gradient(180deg, var(--accent) 0%, #c9682f 100%);
+    color:#10100f;font-family:var(--mono);font-weight:700;
+    font-size:13px;letter-spacing:1.6px;text-transform:uppercase;
+    cursor:pointer;border-radius:0;position:relative;
+    box-shadow:0 8px 30px rgba(228,122,60,.28), inset 0 1px 0 rgba(255,255,255,.18);
+    transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .run:hover{transform:translateY(-1px);box-shadow:0 12px 40px rgba(228,122,60,.4), inset 0 1px 0 rgba(255,255,255,.22)}
+  .run:active{transform:translateY(0)}
+  .run:disabled{filter:saturate(.4) brightness(.7);cursor:wait}
+  .run .tri{
+    width:0;height:0;border-style:solid;border-width:7px 0 7px 11px;
+    border-color:transparent transparent transparent #10100f;
+  }
+  .run .sub{display:block;font-size:9.5px;letter-spacing:2px;opacity:.7;margin-top:2px}
+  .run-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-top:10px;text-align:right}
+  .run-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:0}
+
+  /* Section heading */
+  .section{margin-top:34px}
+  .sec-head{
+    display:flex;align-items:baseline;justify-content:space-between;gap:18px;
+    border-bottom:1px solid var(--border-soft);padding-bottom:10px;margin-bottom:16px;
+  }
+  .sec-head h2{
+    margin:0;font-family:var(--mono);font-size:11px;
+    letter-spacing:2.4px;text-transform:uppercase;color:var(--text);font-weight:600;
+    display:flex;align-items:center;gap:10px;
+  }
+  .sec-head h2::before{
+    content:"";width:6px;height:6px;background:var(--accent);
+    display:inline-block;
+  }
+  .sec-head .meta{color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase}
+
+  /* Card grids */
+  .grid{display:grid;gap:1px;background:var(--border-soft);border:1px solid var(--border-soft)}
+  .grid.cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card{
+    background:var(--panel);padding:18px 18px 20px;min-height:108px;
+    display:flex;flex-direction:column;justify-content:space-between;gap:12px;
+  }
+  .card .label{
+    font-family:var(--mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;
+    color:var(--muted);
+  }
+  .card .value{
+    font-family:var(--mono);font-size:24px;font-weight:600;color:var(--text);
+    line-height:1.05;overflow-wrap:anywhere;
+  }
+  .card .value.accent{color:var(--accent)}
+  .card .value.good{color:var(--good)}
+  .card .value.warn{color:var(--warn)}
+  .card .value.bad{color:var(--bad)}
+  .card .value.serif{font-family:var(--serif);font-weight:400;font-size:42px;letter-spacing:-.01em}
+  .card .note{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.6px;line-height:1.5}
+
+  /* Hero metrics row */
+  .metrics-hero{
+    display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:1px;
+    background:var(--border-soft);border:1px solid var(--border-soft);
+  }
+  .metrics-hero .card{min-height:148px}
+  .metrics-hero .card.feature{
+    background:linear-gradient(135deg, rgba(228,122,60,.12), rgba(228,122,60,.02) 60%), var(--panel);
+    border-left:2px solid var(--accent);
+  }
+  .metrics-hero .card.feature .value{color:var(--accent);font-family:var(--serif);font-size:64px;font-weight:400;letter-spacing:-.02em}
+  .metrics-hero .card.feature .sub{
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    letter-spacing:1.4px;text-transform:uppercase;margin-top:6px;
+  }
+
+  /* Gate cards */
+  .gate-card{position:relative;border-top:2px solid transparent}
+  .gate-card.ignore{border-top-color:#5a5147}
+  .gate-card.json{border-top-color:#9ec27f}
+  .gate-card.crop{border-top-color:var(--accent)}
+  .gate-card.full{border-top-color:#d26455}
+  .gate-card .count{font-family:var(--serif);font-size:48px;line-height:1;font-weight:400;color:var(--text)}
+  .gate-card.ignore .count{color:#8a7f70}
+  .gate-card.json .count{color:var(--good)}
+  .gate-card.crop .count{color:var(--accent)}
+  .gate-card.full .count{color:var(--bad)}
+  .gate-card .gate-name{font-family:var(--mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--text);font-weight:600}
+  .gate-card .gate-flow{
+    font-family:var(--mono);font-size:10px;color:var(--dim);
+    letter-spacing:.6px;line-height:1.5;display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  }
+  .gate-card .arrow{color:var(--accent)}
+
+  /* Replay split */
+  .replay-split{
+    display:grid;grid-template-columns:1.05fr 1fr;gap:1px;
+    background:var(--border-soft);border:1px solid var(--border-soft);
+  }
+  .replay-split > *{background:var(--panel)}
+
+  /* Tile table */
+  .tile-table{padding:0;display:flex;flex-direction:column;min-height:560px}
+  .tile-table-head{
+    display:grid;grid-template-columns:90px 100px 1fr 80px 80px;
+    padding:12px 16px;border-bottom:1px solid var(--border-soft);
+    font-family:var(--mono);font-size:10px;letter-spacing:1.4px;
+    text-transform:uppercase;color:var(--dim);
+  }
+  .tile-table-body{flex:1;overflow:auto;max-height:560px}
+  .tile-row{
+    display:grid;grid-template-columns:90px 100px 1fr 80px 80px;
+    padding:14px 16px;border-bottom:1px solid var(--border-soft);
+    cursor:pointer;align-items:center;
+    font-family:var(--mono);font-size:12px;color:var(--text);
+    transition:background .12s ease, border-color .12s ease;
+  }
+  .tile-row:hover{background:rgba(228,122,60,.04)}
+  .tile-row.selected{
+    background:linear-gradient(90deg, rgba(228,122,60,.16), rgba(228,122,60,.02));
+    border-left:2px solid var(--accent);padding-left:14px;
+  }
+  .tile-row .tid{font-weight:600;color:var(--text)}
+  .tile-row .gate{
+    font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;
+    padding:3px 7px;border:1px solid var(--border);display:inline-block;width:fit-content;
+  }
+  .tile-row .gate.ignore{color:var(--dim);border-color:var(--border)}
+  .tile-row .gate.json{color:var(--good);border-color:rgba(158,194,127,.4)}
+  .tile-row .gate.crop{color:var(--accent);border-color:var(--accent-line)}
+  .tile-row .gate.full{color:var(--bad);border-color:rgba(210,100,85,.45)}
+  .tile-row .conf{color:var(--text);font-variant-numeric:tabular-nums}
+  .tile-row .conf.low{color:var(--dim)}
+  .tile-row .bytes{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+  .conf-bar{
+    height:3px;background:rgba(255,255,255,.06);margin-top:5px;position:relative;
+  }
+  .conf-bar > i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);display:block}
+
+  /* Alert detail panel */
+  .detail{padding:22px 22px 24px;display:flex;flex-direction:column;gap:18px;min-height:560px}
+  .detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .detail-head .id{
+    font-family:var(--serif);font-size:34px;line-height:1;color:var(--text);font-weight:400;letter-spacing:-.01em;
+  }
+  .detail-head .id .accent{color:var(--accent);font-style:italic}
+  .detail-head .gate-tag{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;
+    padding:6px 10px;border:1px solid var(--accent-line);color:var(--accent);
+  }
+  .crop-evidence{
+    border:1px solid var(--border-soft);background:#000;
+    aspect-ratio:16/10;position:relative;overflow:hidden;
+  }
+  .crop-evidence .label-tag{
+    position:absolute;top:12px;left:12px;z-index:2;
+    font-family:var(--mono);font-size:10px;letter-spacing:1.4px;text-transform:uppercase;
+    background:rgba(0,0,0,.7);padding:5px 8px;color:var(--text);
+    border:1px solid var(--border);
+  }
+  .crop-evidence .scale{
+    position:absolute;bottom:12px;right:12px;z-index:2;
+    font-family:var(--mono);font-size:10px;color:var(--accent);
+    background:rgba(0,0,0,.7);padding:5px 8px;border:1px solid var(--accent-line);
+  }
+  .crop-evidence svg{width:100%;height:100%;display:block}
+
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .kv{
+    border:1px solid var(--border-soft);background:var(--panel-3);padding:14px;
+  }
+  .kv h4{
+    margin:0 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:1.6px;
+    text-transform:uppercase;color:var(--muted);font-weight:600;
+  }
+  .kv .row{
+    display:flex;justify-content:space-between;gap:10px;padding:5px 0;
+    font-family:var(--mono);font-size:11.5px;border-bottom:1px dashed var(--border-soft);
+  }
+  .kv .row:last-child{border-bottom:0}
+  .kv .row .k{color:var(--dim)}
+  .kv .row .v{color:var(--text);text-align:right;overflow-wrap:anywhere}
+  .kv .row .v.accent{color:var(--accent)}
+  .kv .row .v.good{color:var(--good)}
+  .kv .row .v.warn{color:var(--warn)}
+
+  .liquid-card{
+    border:1px solid var(--border-soft);background:var(--panel-3);padding:16px;
+  }
+  .liquid-card .head{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+  }
+  .liquid-card h4{
+    margin:0;font-family:var(--mono);font-size:10.5px;letter-spacing:1.6px;
+    text-transform:uppercase;color:var(--text);font-weight:600;
+  }
+  .liquid-card .verdict{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;
+    padding:4px 8px;border:1px solid rgba(158,194,127,.4);color:var(--good);
+  }
+  .liquid-card .verdict.warn{color:var(--warn);border-color:rgba(226,174,92,.4)}
+  .liquid-card .verdict.bad{color:var(--bad);border-color:rgba(210,100,85,.4)}
+  .liquid-card .summary{
+    font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--text);
+    border-left:2px solid var(--accent);padding:6px 0 6px 12px;margin:8px 0 12px;
+  }
+  .liquid-card .reasoning{
+    font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--muted);margin:0 0 12px;
+  }
+  .liquid-card pre.raw{
+    margin:0;padding:10px 12px;background:#000;border:1px solid var(--border-soft);
+    font-family:var(--mono);font-size:11px;color:var(--accent);
+    white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;
+  }
+
+  /* JSON viewer */
+  .json-viewer{
+    border:1px solid var(--border-soft);background:#08090a;padding:0;
+    font-family:var(--mono);font-size:11.5px;line-height:1.6;
+    max-height:380px;overflow:auto;
+  }
+  .json-viewer pre{margin:0;padding:14px 16px;color:var(--text);white-space:pre}
+  .json-viewer .k{color:var(--accent)}
+  .json-viewer .s{color:#a8c98a}
+  .json-viewer .n{color:#e2c47a}
+  .json-viewer .b{color:#c98ac9}
+  .json-viewer .nl{color:var(--dim)}
+
+  /* Queue tree */
+  .queue{
+    display:grid;grid-template-columns:1.1fr 1fr;gap:1px;
+    background:var(--border-soft);border:1px solid var(--border-soft);
+  }
+  .queue > *{background:var(--panel);padding:18px}
+  .tree{
+    font-family:var(--mono);font-size:12px;line-height:1.85;color:var(--text);
+    background:#08090a;border:1px solid var(--border-soft);padding:14px 16px;
+    white-space:pre;overflow:auto;
+  }
+  .tree .dir{color:var(--accent)}
+  .tree .file{color:var(--text)}
+  .tree .dim{color:var(--dim)}
+  .tree .new{color:var(--good)}
+  .callout{
+    border-left:2px solid var(--accent);background:var(--accent-soft);
+    padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--text);
+    margin-top:14px;
+  }
+  .callout strong{color:var(--accent);font-weight:600}
+  .callout.warn{border-left-color:var(--warn);background:rgba(226,174,92,.08)}
+  .callout.warn strong{color:var(--warn)}
+
+  /* Run locally */
+  .commands{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .cmd-card{border:1px solid var(--border-soft);background:var(--panel-3);padding:0;display:flex;flex-direction:column}
+  .cmd-card .cmd-head{
+    padding:12px 16px;border-bottom:1px solid var(--border-soft);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .cmd-card .cmd-head h4{
+    margin:0;font-family:var(--mono);font-size:10.5px;letter-spacing:1.6px;
+    text-transform:uppercase;color:var(--text);font-weight:600;
+  }
+  .cmd-card .badge{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;
+    text-transform:uppercase;padding:3px 7px;border:1px solid var(--accent-line);
+    color:var(--accent);
+  }
+  .cmd-card .badge.warn{color:var(--warn);border-color:rgba(226,174,92,.4)}
+  .cmd-card pre{
+    margin:0;padding:14px 16px;background:#08090a;flex:1;
+    font-family:var(--mono);font-size:11.5px;line-height:1.7;color:var(--text);
+    white-space:pre;overflow:auto;
+  }
+  .cmd-card pre .c{color:var(--dim)}
+  .cmd-card pre .a{color:var(--accent)}
+  .copy-btn{
+    background:transparent;border:1px solid var(--border);color:var(--muted);
+    font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;
+    padding:4px 8px;cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--accent);border-color:var(--accent-line)}
+  .copy-btn.copied{color:var(--good);border-color:rgba(158,194,127,.4)}
+
+  /* Honesty panel */
+  .honesty{
+    border:1px solid var(--border-soft);background:var(--panel);padding:22px 24px;
+    display:grid;grid-template-columns:1fr 1fr;gap:24px;
+  }
+  .honesty h3{
+    margin:0 0 12px;font-family:var(--mono);font-size:10.5px;letter-spacing:1.6px;
+    text-transform:uppercase;color:var(--text);font-weight:600;
+    display:flex;align-items:center;gap:10px;
+  }
+  .honesty h3 .dot{width:6px;height:6px;background:var(--accent)}
+  .honesty ul{margin:0;padding:0;list-style:none}
+  .honesty li{
+    font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--muted);
+    padding:6px 0 6px 18px;position:relative;
+  }
+  .honesty li::before{
+    content:"";position:absolute;left:0;top:14px;width:8px;height:1px;background:var(--accent);
+  }
+  .honesty li b{color:var(--text);font-weight:500}
+
+  /* Footer */
+  .foot{
+    margin-top:40px;border-top:1px solid var(--border-soft);padding-top:18px;
+    display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);
+  }
+  .foot .accent{color:var(--accent)}
+
+  /* Pre-run state */
+  .empty-veil{
+    position:relative;
+    border:1px dashed var(--border);
+    background:repeating-linear-gradient(45deg, rgba(228,122,60,.025), rgba(228,122,60,.025) 6px, transparent 6px, transparent 12px);
+    padding:42px 24px;
+    text-align:center;
+    font-family:var(--mono);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;
+    color:var(--muted);
+  }
+  .empty-veil b{color:var(--accent);font-weight:600}
+
+  /* Loaded reveal */
+  [data-loaded="false"] .needs-load{
+    opacity:.25;filter:grayscale(.6);pointer-events:none;
+  }
+  [data-loaded="false"] .needs-load .value,
+  [data-loaded="false"] .needs-load .count,
+  [data-loaded="false"] .needs-load .number{color:var(--dim) !important}
+  [data-loaded="false"] .pre-run-only{display:flex !important}
+  [data-loaded="true"]  .pre-run-only{display:none !important}
+
+  .pre-run-only{display:none}
+
+  /* Loading bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;height:2px;background:transparent;z-index:99;
+    pointer-events:none;
+  }
+  .progress > i{
+    display:block;height:100%;width:0%;background:var(--accent);
+    box-shadow:0 0 12px var(--accent);
+    transition:width .25s ease;
+  }
+
+  /* Anim */
+  @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+  .pulse{animation:pulse 1.4s ease-in-out infinite}
+
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .fade-in{animation:fadein .4s ease both}
+
+  /* Responsive */
+  @media (max-width:1100px){
+    .grid.cols-5{grid-template-columns:repeat(3,1fr)}
+    .grid.cols-4{grid-template-columns:repeat(2,1fr)}
+    .metrics-hero{grid-template-columns:1fr 1fr}
+    .replay-split,.queue,.commands,.honesty{grid-template-columns:1fr}
+    .hero-row{grid-template-columns:1fr}
+    .run-wrap{align-items:flex-start}
+    .run-meta{text-align:left}
+  }
+  @media (max-width:640px){
+    .shell{padding:18px 14px 40px}
+    .grid.cols-5,.grid.cols-4,.grid.cols-3{grid-template-columns:1fr}
+    .detail-grid{grid-template-columns:1fr}
+    .tile-table-head,.tile-row{grid-template-columns:80px 90px 1fr 70px}
+    .tile-table-head .col-bytes,.tile-row .bytes{display:none}
+  }
+</style>
+</head>
+<body data-loaded="false">
+
+<div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="left">
+      <span class="dot pulse"></span>
+      <span>KILNWATCH · GS-01</span>
+      <span style="color:var(--dim)">|</span>
+      <span>Liquid AI × DPhi · AI in Space</span>
+    </div>
+    <div class="right">
+      <span>Pass <b id="passId">0×0000</b></span>
+      <span>UTC <b id="clock">--:--:--</b></span>
+      <span>Build <b>v1.0.0</b></span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="kicker">Ground Station Console — Mission Replay</div>
+    <h1 class="title">Detect <span class="accent">before</span> downlink.<br/>Reason <span class="accent">before</span> review.</h1>
+    <p class="subtitle">
+      Fourteen overhead tiles entered the satellite-edge node. Strict YOLO localized kiln candidates,
+      Liquid LFM2-VL reviewed each crop with structured reasoning, and the four-tier triage gate
+      decided what crossed the downlink. The ground station only sees what was actually transmitted.
+    </p>
+
+    <div class="hero-row">
+      <div class="chip-row" id="chipRow">
+        <span class="chip good">STRICT YOLO REAL</span>
+        <span class="chip good">LIQUID LFM2-VL · STRUCTURED · REASONED OVER CROP</span>
+        <span class="chip accent">QUEUE-ONLY GROUND STATION</span>
+        <span class="chip accent">FOUR-TIER TRIAGE</span>
+        <span class="chip warn">LOCAL SIMULATION</span>
+        <span class="chip warn">NOT SENTINEL-VALIDATED</span>
+      </div>
+      <div class="run-wrap">
+        <button class="run" id="runBtn" type="button">
+          <span class="tri" aria-hidden="true"></span>
+          <span>Run Mission Replay
+            <span class="sub">load queue → refresh dashboard</span>
+          </span>
+        </button>
+        <div class="run-meta" id="runMeta">QUEUE NOT YET LOADED · CLICK RUN</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PROOF STATUS -->
+  <section class="section">
+    <div class="sec-head">
+      <h2>Proof Status</h2>
+      <span class="meta">driven by payload + telemetry metadata</span>
+    </div>
+    <div class="grid cols-4 needs-load">
+      <div class="card"><div class="label">detector_mode</div><div class="value" id="ps-detector_mode">yolo</div><div class="note">strict YOLO, no fallback</div></div>
+      <div class="card"><div class="label">detector_is_real</div><div class="value good" id="ps-detector_is_real">true</div><div class="note">real model weights</div></div>
+      <div class="card"><div class="label">simulated</div><div class="value" id="ps-simulated">false</div><div class="note">no synthetic detections</div></div>
+      <div class="card"><div class="label">fallback_used</div><div class="value" id="ps-fallback_used">false</div><div class="note">strict path active</div></div>
+      <div class="card"><div class="label">reasoner_mode</div><div class="value accent" id="ps-reasoner_mode">liquid-local</div><div class="note">Liquid LFM2-VL local</div></div>
+      <div class="card"><div class="label">reasoner_is_real</div><div class="value good" id="ps-reasoner_is_real">true</div><div class="note">real model invocation</div></div>
+      <div class="card"><div class="label">reasoner_output_valid</div><div class="value good" id="ps-reasoner_output_valid">true</div><div class="note">structured JSON parsed</div></div>
+      <div class="card"><div class="label">reasoned_over</div><div class="value accent" id="ps-reasoned_over">crop</div><div class="note">crop only, not raw tile</div></div>
+      <div class="card"><div class="label">model_name</div><div class="value" id="ps-model_name" style="font-size:14px">LiquidAI/LFM2-VL-450M</div><div class="note">local checkpoint</div></div>
+      <div class="card"><div class="label">queue_path</div><div class="value" id="ps-queue_path" style="font-size:14px">transmission_queue/</div><div class="note">ground-station boundary</div></div>
+      <div class="card"><div class="label">payload_files</div><div class="value" id="ps-payload_files">0</div><div class="note">JSON alerts in queue</div></div>
+      <div class="card"><div class="label">telemetry</div><div class="value" id="ps-telemetry">missing</div><div class="note">telemetry.jsonl status</div></div>
+    </div>
+  </section>
+
+  <!-- MISSION METRICS -->
+  <section class="section">
+    <div class="sec-head">
+      <h2>Mission Metrics</h2>
+      <span class="meta">no payload + telemetry double-counting</span>
+    </div>
+    <div class="metrics-hero needs-load">
+      <div class="card feature">
+        <div class="label">Bandwidth saved</div>
+        <div>
+          <div class="value" id="m-saved-pct">— %</div>
+          <div class="sub" id="m-saved-bytes">— bytes saved</div>
+        </div>
+        <div class="note">raw bytes processed minus transmitted bytes</div>
+      </div>
+      <div class="card">
+        <div class="label">Compression ratio</div>
+        <div class="value accent" id="m-ratio">—×</div>
+        <div class="note">raw / transmitted</div>
+      </div>
+      <div class="card">
+        <div class="label">Tiles processed</div>
+        <div class="value serif" id="m-tiles">—</div>
+        <div class="note">telemetry events</div>
+      </div>
+      <div class="card">
+        <div class="label">Alerts downlinked</div>
+        <div class="value serif" id="m-alerts">—</div>
+        <div class="note">unique non-IGNORE tiles</div>
+      </div>
+    </div>
+
+    <div class="grid cols-5 needs-load" style="margin-top:14px">
+      <div class="card"><div class="label">Ignored tiles</div><div class="value" id="m-ignored">—</div><div class="note">telemetry only</div></div>
+      <div class="card"><div class="label">Raw bytes processed</div><div class="value" id="m-raw">—</div><div class="note">onboard file sizes</div></div>
+      <div class="card"><div class="label">Transmitted bytes</div><div class="value" id="m-tx">—</div><div class="note">queue artifacts only</div></div>
+      <div class="card"><div class="label">Crops generated</div><div class="value" id="m-crops">—</div><div class="note">real PNG files</div></div>
+      <div class="card"><div class="label">Full tiles written</div><div class="value" id="m-full">—</div><div class="note">written / requested</div></div>
+    </div>
+  </section>
+
+  <!-- FOUR-TIER GATE -->
+  <section class="section">
+    <div class="sec-head">
+      <h2>Four-Tier Triage Gate</h2>
+      <span class="meta">YOLO + triage logic decide the downlink tier</span>
+    </div>
+    <div class="grid cols-4 needs-load">
+      <div class="card gate-card ignore">
+        <div>
+          <div class="gate-name">IGNORE</div>
+          <div class="gate-flow">tile <span class="arrow">→</span> dropped onboard</div>
+        </div>
+        <div class="count" id="g-ignore">—</div>
+        <div class="note">telemetry only — no payload, no crop</div>
+      </div>
+      <div class="card gate-card json">
+        <div>
+          <div class="gate-name">JSON_ALERT_ONLY</div>
+          <div class="gate-flow">bbox <span class="arrow">→</span> JSON</div>
+        </div>
+        <div class="count" id="g-json">—</div>
+        <div class="note">alert metadata, no pixel evidence</div>
+      </div>
+      <div class="card gate-card crop">
+        <div>
+          <div class="gate-name">CROP_OR_REVIEW</div>
+          <div class="gate-flow">JSON <span class="arrow">+</span> crop PNG</div>
+        </div>
+        <div class="count" id="g-crop">—</div>
+        <div class="note">evidence crop crosses the boundary</div>
+      </div>
+      <div class="card gate-card full">
+        <div>
+          <div class="gate-name">FULL_DOWNLINK</div>
+          <div class="gate-flow">JSON <span class="arrow">+</span> crop <span class="arrow">+</span> full tile</div>
+        </div>
+        <div class="count" id="g-full">—</div>
+        <div class="note">compliance review escalation</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TILE REPLAY + ALERT DETAIL -->
+  <section class="section">
+    <div class="sec-head">
+      <h2>Tile Replay · Alert Detail</h2>
+      <span class="meta">select a row to inspect crop, JSON, byte accounting</span>
+    </div>
+
+    <div class="pre-run-only empty-veil">
+      No queue artifacts loaded yet — press <b>Run Mission Replay</b> above to read
+      <code>transmission_queue/*.json</code>, <code>crops/*.png</code> and <code>telemetry.jsonl</code>.
+    </div>
+
+    <div class="replay-split needs-load">
+      <div class="tile-table">
+        <div class="tile-table-head">
+          <span>Tile</span><span>Gate</span><span>Confidence</span><span>Crop</span><span class="col-bytes" style="text-align:right">Tx bytes</span>
+        </div>
+        <div class="tile-table-body" id="tileBody"></div>
+      </div>
+
+      <div class="detail" id="detail">
+        <div class="detail-head">
+          <div class="id">Tile <span class="accent" id="d-id">—</span></div>
+          <div class="gate-tag" id="d-gate">—</div>
+        </div>
+
+        <div class="crop-evidence" id="cropEvidence">
+          <span class="label-tag" id="d-crop-label">crop evidence</span>
+          <span class="scale" id="d-crop-meta">—</span>
+          <svg id="cropSvg" viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice"></svg>
+        </div>
+
+        <div class="liquid-card">
+          <div class="head">
+            <h4>Liquid LFM2-VL · Structured Crop Review</h4>
+            <span class="verdict" id="d-verdict">VALID</span>
+          </div>
+          <div class="summary" id="d-summary">—</div>
+          <div class="reasoning" id="d-reasoning">—</div>
+          <pre class="raw" id="d-raw">—</pre>
+        </div>
+
+        <div class="detail-grid">
+          <div class="kv">
+            <h4>Detector evidence (YOLO)</h4>
+            <div class="row"><span class="k">bbox</span><span class="v" id="d-bbox">—</span></div>
+            <div class="row"><span class="k">confidence</span><span class="v accent" id="d-conf">—</span></div>
+            <div class="row"><span class="k">compliance_risk</span><span class="v" id="d-risk">—</span></div>
+            <div class="row"><span class="k">detector_mode</span><span class="v" id="d-dmode">—</span></div>
+            <div class="row"><span class="k">detector_is_real</span><span class="v good" id="d-dreal">—</span></div>
+          </div>
+          <div class="kv">
+            <h4>Byte accounting</h4>
+            <div class="row"><span class="k">raw_bytes</span><span class="v" id="d-raw-b">—</span></div>
+            <div class="row"><span class="k">transmitted_bytes</span><span class="v" id="d-tx-b">—</span></div>
+            <div class="row"><span class="k">saved_bytes</span><span class="v accent" id="d-saved-b">—</span></div>
+            <div class="row"><span class="k">crop_written</span><span class="v" id="d-crop-w">—</span></div>
+            <div class="row"><span class="k">full_tile_written</span><span class="v" id="d-full-w">—</span></div>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="margin:0 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:600">Raw JSON payload (transmitted)</h4>
+          <div class="json-viewer"><pre id="d-json">—</pre></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRANSMISSION QUEUE -->
+  <section class="section">
+    <div class="sec-head">
+      <h2>Transmission Queue</h2>
+      <span class="meta">the only boundary the ground station can see</span>
+    </div>
+    <div class="queue needs-load">
+      <div>
+        <h4 style="margin:0 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:600">transmission_queue/</h4>
+        <div class="tree" id="treeView"></div>
+      </div>
+      <div>
+        <div class="callout">
+          <strong>The ground station reads only these artifacts.</strong>
+          Raw tiles never cross the satellite boundary. Bandwidth savings come from real byte
+          accounting against onboard tile sizes.
+        </div>
+        <div class="callout warn">
+          <strong>Liquid annotates the evidence.</strong> YOLO + the four-tier triage decide the
+          gate. LFM2-VL reasons over the crop after detection — never the raw tile.
+        </div>
+        <div class="callout">
+          <strong>Pipeline:</strong> raw tile → YOLO bbox → real crop → Liquid structured JSON →
+          four-tier gate → downlink → queue → this dashboard.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RUN LOCALLY -->
+  <section class="section">
+    <div class="sec-head">
+      <h2>Run Locally</h2>
+      <span class="meta">commands used to regenerate this queue</span>
+    </div>
+    <div class="commands">
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <h4>1 · Detector readiness</h4>
+          <button class="copy-btn" data-copy="cmd1">copy</button>
+        </div>
+<pre id="cmd1"><span class="c"># Verify strict YOLO weights and Liquid LFM2-VL cache</span>
+python scripts/check_model_ready.py <span class="a">--json</span></pre>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <h4>2 · Strict YOLO + Liquid local</h4>
+          <span class="badge">recommended</span>
+        </div>
+<pre id="cmd2"><span class="c"># Full local pipeline: YOLO detects, Liquid reviews crops</span>
+python -m satellite_edge_node.orbital_pass \
+  <span class="a">--raw-tiles</span> data/final_demo_tiles \
+  <span class="a">--transmission-queue</span> transmission_queue \
+  <span class="a">--detector</span> yolo \
+  <span class="a">--reasoner</span> liquid-local \
+  <span class="a">--require-crops</span> \
+  <span class="a">--reset-queue</span>
+
+streamlit run app.py</pre>
+        <div style="padding:8px 16px;border-top:1px solid var(--border-soft);text-align:right">
+          <button class="copy-btn" data-copy="cmd2">copy</button>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <h4>3 · YOLO-only fallback</h4>
+          <span class="badge warn">no Liquid</span>
+        </div>
+<pre id="cmd3"><span class="c"># Use when local Liquid dependencies / model cache are unavailable</span>
+python -m satellite_edge_node.orbital_pass \
+  <span class="a">--raw-tiles</span> data/final_demo_tiles \
+  <span class="a">--transmission-queue</span> transmission_queue \
+  <span class="a">--detector</span> yolo \
+  <span class="a">--reasoner</span> disabled \
+  <span class="a">--require-crops</span> \
+  <span class="a">--reset-queue</span></pre>
+        <div style="padding:8px 16px;border-top:1px solid var(--border-soft);text-align:right">
+          <button class="copy-btn" data-copy="cmd3">copy</button>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <h4>4 · Verify Liquid proof chain</h4>
+          <button class="copy-btn" data-copy="cmd4">copy</button>
+        </div>
+<pre id="cmd4"><span class="c"># Confirm structured Liquid JSON crossed the boundary</span>
+jq -s '{
+  payloads: length,
+  liquid_real:        map(select(.vlm_reasoning.reasoner_is_real == true)) | length,
+  liquid_valid:       map(select(.vlm_reasoning.reasoner_output_valid == true)) | length,
+  reasoned_over_crop: map(select(.vlm_reasoning.reasoned_over == "crop")) | length
+}' transmission_queue/*.json</pre>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>KILNWATCH · GROUND STATION GS-01 · MISSION REPLAY</span>
+    <span>DETECT BEFORE DOWNLINK <span class="accent">·</span> REASON BEFORE REVIEW <span class="accent">·</span> SEND EVIDENCE INSTEAD OF EMPTY FIELDS</span>
+  </div>
+
+</div>
+
+<script>
+// Mock transmission_queue artifacts - shaped exactly like app.py expects
+// (payloads from transmission_queue/*.json + telemetry from telemetry.jsonl)
+
+window.QUEUE_DATA = {
+  status: {
+    detector_label: "STRICT YOLO REAL",
+    truth_fields: {
+      detector_mode: "yolo",
+      detector_is_real: true,
+      simulated: false,
+      fallback_used: false,
+      vlm_reasoning: {
+        reasoner_mode: "liquid-local",
+        reasoner_is_real: true,
+        reasoner_output_valid: true,
+        model_name: "LiquidAI/LFM2-VL-450M",
+        reasoned_over: "crop",
+        crop_path_used: "transmission_queue/crops/T-2034.png"
+      }
+    }
+  },
+  statuses: ["liquid-real"],
+  artifacts: {
+    queue_dir: "transmission_queue/",
+    payload_files: [
+      "T-2031.json","T-2034.json","T-2037.json","T-2042.json","T-2049.json"
+    ],
+    crop_files: [
+      "T-2031.png","T-2034.png","T-2037.png","T-2042.png","T-2049.png"
+    ],
+    full_tile_files: ["T-2049_full.png"],
+    telemetry_files: ["telemetry.jsonl"]
+  },
+  metrics: {
+    tiles_processed: 14,
+    raw_bytes_processed: 84_410_368,   // ~80.5 MB
+    downlinked_bytes: 1_843_400,       // ~1.76 MB
+    bytes_saved: 82_566_968,
+    bandwidth_saved_percent: 97.8,
+    compression_ratio: 45.79
+  },
+  counts: {
+    detections: 5,
+    ignored_tiles: 9,
+    crops_generated: 5,
+    full_tiles_generated: 1,
+    full_downlinks: 1
+  },
+  gates: {
+    IGNORE: 9,
+    JSON_ALERT_ONLY: 1,
+    CROP_OR_REVIEW: 3,
+    FULL_DOWNLINK: 1
+  },
+
+  rows: [
+    // 5 alerts first, then 9 ignores
+    {
+      tile_id: "T-2031", triage_decision: "JSON_ALERT_ONLY", transmission_action: "json",
+      confidence: 0.4128, compliance_risk: "low",
+      detector_mode: "yolo", detector_is_real: true,
+      reasoner_status: "Liquid emitted valid structured crop reasoning.",
+      reasoner_output_valid: true,
+      raw_bytes: 6_029_312, transmitted_bytes: 1_842,
+      crop_written: false, full_tile_written: false,
+      crop_path: null,
+      bbox: [412, 388, 478, 451],
+      payload: {
+        tile_id: "T-2031", capture_ts: "2026-05-09T03:18:42Z",
+        triage_decision: "JSON_ALERT_ONLY", transmission_action: "json",
+        confidence: 0.4128, compliance_risk: "low",
+        bbox: [412, 388, 478, 451], detector_mode: "yolo", detector_is_real: true,
+        vlm_reasoning: {
+          reasoner_mode: "liquid-local", reasoner_is_real: true,
+          reasoner_output_valid: true, model_name: "LiquidAI/LFM2-VL-450M",
+          reasoned_over: "crop", crop_path_used: "transmission_queue/crops/T-2031.png",
+          visual_summary: "Faint rectangular thermal signature; possible kiln stack but image quality is insufficient to confirm.",
+          risk_reasoning: "Low confidence detection, no plume visible, no clustered structures.",
+          raw_output_excerpt: "{\"verdict\":\"low_confidence\",\"plume\":false,\"chimneys\":1,\"caveat\":\"image quality is insufficient to confirm\"}"
+        }
+      }
+    },
+    {
+      tile_id: "T-2034", triage_decision: "CROP_OR_REVIEW", transmission_action: "json+crop",
+      confidence: 0.7841, compliance_risk: "medium",
+      detector_mode: "yolo", detector_is_real: true,
+      reasoner_status: "Liquid emitted valid structured crop reasoning.",
+      reasoner_output_valid: true,
+      raw_bytes: 6_029_312, transmitted_bytes: 124_388,
+      crop_written: true, full_tile_written: false,
+      crop_path: "transmission_queue/crops/T-2034.png",
+      bbox: [128, 244, 311, 402],
+      payload: {
+        tile_id: "T-2034", capture_ts: "2026-05-09T03:19:11Z",
+        triage_decision: "CROP_OR_REVIEW", transmission_action: "json+crop",
+        confidence: 0.7841, compliance_risk: "medium",
+        bbox: [128, 244, 311, 402], detector_mode: "yolo", detector_is_real: true,
+        vlm_reasoning: {
+          reasoner_mode: "liquid-local", reasoner_is_real: true,
+          reasoner_output_valid: true, model_name: "LiquidAI/LFM2-VL-450M",
+          reasoned_over: "crop", crop_path_used: "transmission_queue/crops/T-2034.png",
+          visual_summary: "Rectangular kiln ovens with two tall chimneys; faint plume drift north-east.",
+          risk_reasoning: "Visible chimneys and clustered firing structures consistent with active brick kiln.",
+          raw_output_excerpt: "{\"verdict\":\"likely_kiln\",\"plume\":true,\"chimneys\":2,\"clustered\":true}"
+        }
+      }
+    },
+    {
+      tile_id: "T-2037", triage_decision: "CROP_OR_REVIEW", transmission_action: "json+crop",
+      confidence: 0.6629, compliance_risk: "medium",
+      detector_mode: "yolo", detector_is_real: true,
+      reasoner_status: "Liquid emitted valid structured crop reasoning.",
+      reasoner_output_valid: true,
+      raw_bytes: 6_029_312, transmitted_bytes: 96_104,
+      crop_written: true, full_tile_written: false,
+      crop_path: "transmission_queue/crops/T-2037.png",
+      bbox: [502, 121, 638, 244],
+      payload: {
+        tile_id: "T-2037", capture_ts: "2026-05-09T03:19:48Z",
+        triage_decision: "CROP_OR_REVIEW", transmission_action: "json+crop",
+        confidence: 0.6629, compliance_risk: "medium",
+        bbox: [502, 121, 638, 244], detector_mode: "yolo", detector_is_real: true,
+        vlm_reasoning: {
+          reasoner_mode: "liquid-local", reasoner_is_real: true,
+          reasoner_output_valid: true, model_name: "LiquidAI/LFM2-VL-450M",
+          reasoned_over: "crop", crop_path_used: "transmission_queue/crops/T-2037.png",
+          visual_summary: "Single chimney over rectangular firing chamber; surface staining suggests recent fire.",
+          risk_reasoning: "One chimney plus firing chamber consistent with small kiln; no plume currently visible.",
+          raw_output_excerpt: "{\"verdict\":\"possible_kiln\",\"plume\":false,\"chimneys\":1,\"clustered\":false}"
+        }
+      }
+    },
+    {
+      tile_id: "T-2042", triage_decision: "CROP_OR_REVIEW", transmission_action: "json+crop",
+      confidence: 0.7113, compliance_risk: "medium",
+      detector_mode: "yolo", detector_is_real: true,
+      reasoner_status: "Liquid emitted valid structured crop reasoning.",
+      reasoner_output_valid: true,
+      raw_bytes: 6_029_312, transmitted_bytes: 108_512,
+      crop_written: true, full_tile_written: false,
+      crop_path: "transmission_queue/crops/T-2042.png",
+      bbox: [88, 502, 244, 661],
+      payload: {
+        tile_id: "T-2042", capture_ts: "2026-05-09T03:20:31Z",
+        triage_decision: "CROP_OR_REVIEW", transmission_action: "json+crop",
+        confidence: 0.7113, compliance_risk: "medium",
+        bbox: [88, 502, 244, 661], detector_mode: "yolo", detector_is_real: true,
+        vlm_reasoning: {
+          reasoner_mode: "liquid-local", reasoner_is_real: true,
+          reasoner_output_valid: true, model_name: "LiquidAI/LFM2-VL-450M",
+          reasoned_over: "crop", crop_path_used: "transmission_queue/crops/T-2042.png",
+          visual_summary: "Two adjacent kiln structures with a single shared stack; image quality moderate.",
+          risk_reasoning: "Two firing chambers and one chimney; possible co-located kilns, plume not confirmed.",
+          raw_output_excerpt: "{\"verdict\":\"likely_kiln\",\"plume\":false,\"chimneys\":1,\"clustered\":true}"
+        }
+      }
+    },
+    {
+      tile_id: "T-2049", triage_decision: "FULL_DOWNLINK", transmission_action: "json+crop+full",
+      confidence: 0.9214, compliance_risk: "high",
+      detector_mode: "yolo", detector_is_real: true,
+      reasoner_status: "Liquid emitted valid structured crop reasoning.",
+      reasoner_output_valid: true,
+      raw_bytes: 6_029_312, transmitted_bytes: 1_512_554,
+      crop_written: true, full_tile_written: true,
+      crop_path: "transmission_queue/crops/T-2049.png",
+      bbox: [201, 88, 612, 488],
+      payload: {
+        tile_id: "T-2049", capture_ts: "2026-05-09T03:21:06Z",
+        triage_decision: "FULL_DOWNLINK", transmission_action: "json+crop+full",
+        confidence: 0.9214, compliance_risk: "high",
+        bbox: [201, 88, 612, 488], detector_mode: "yolo", detector_is_real: true,
+        vlm_reasoning: {
+          reasoner_mode: "liquid-local", reasoner_is_real: true,
+          reasoner_output_valid: true, model_name: "LiquidAI/LFM2-VL-450M",
+          reasoned_over: "crop", crop_path_used: "transmission_queue/crops/T-2049.png",
+          visual_summary: "Cluster of six rectangular kiln ovens with three tall chimneys and visible plume drifting south.",
+          risk_reasoning: "Multiple firing chambers, multiple chimneys, active plume — high-risk kiln cluster, full tile requested for compliance review.",
+          raw_output_excerpt: "{\"verdict\":\"active_kiln_cluster\",\"plume\":true,\"chimneys\":3,\"clustered\":true,\"ovens\":6}"
+        }
+      }
+    },
+
+    // ignores
+    ...["T-2030","T-2032","T-2033","T-2035","T-2036","T-2038","T-2040","T-2046","T-2050"].map((id, i) => ({
+      tile_id: id, triage_decision: "IGNORE", transmission_action: "telemetry",
+      confidence: [0.0421,0.0612,0.0188,0.0901,0.0334,0.0712,0.0455,0.0298,0.0816][i],
+      compliance_risk: "none",
+      detector_mode: "yolo", detector_is_real: true,
+      reasoner_status: "LFM not invoked (gate did not require evidence review).",
+      reasoner_output_valid: null,
+      raw_bytes: 6_029_312, transmitted_bytes: 412,
+      crop_written: false, full_tile_written: false,
+      crop_path: null,
+      bbox: null,
+      payload: null
+    }))
+  ]
+};
+
+</script>
+<script>
+(function(){
+  const D = window.QUEUE_DATA;
+  const $ = (id) => document.getElementById(id);
+
+  // ---- Helpers ----
+  function fmtBytes(b){
+    if (b == null) return "—";
+    const u = ["B","KB","MB","GB"];
+    let i = 0, n = Number(b);
+    while (n >= 1024 && i < u.length-1){ n/=1024; i++; }
+    return (n>=100?n.toFixed(0):n>=10?n.toFixed(1):n.toFixed(2)) + " " + u[i];
+  }
+  function fmtNum(n){ return Number(n).toLocaleString(); }
+
+  // ---- Clock + pass id ----
+  function pad(n){return String(n).padStart(2,"0")}
+  function tickClock(){
+    const d = new Date();
+    $("clock").textContent = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+  }
+  setInterval(tickClock, 1000); tickClock();
+  $("passId").textContent = "0×" + Math.floor(Math.random()*0xffff).toString(16).padStart(4,"0").toUpperCase();
+
+  // ---- Run button (animated load) ----
+  const runBtn = $("runBtn");
+  const progressBar = $("progressBar");
+  const runMeta = $("runMeta");
+
+  runBtn.addEventListener("click", () => {
+    if (runBtn.disabled) return;
+    runBtn.disabled = true;
+    runBtn.querySelector("span:nth-child(2)").firstChild.nodeValue = "Reading queue…";
+    runMeta.textContent = "READING transmission_queue/*.json …";
+
+    const stages = [
+      [10,  "READING transmission_queue/*.json …"],
+      [28,  "READING transmission_queue/telemetry.jsonl …"],
+      [48,  "VERIFYING reasoner_is_real / reasoner_output_valid …"],
+      [70,  "RECONCILING payload + telemetry rows …"],
+      [88,  "COMPUTING byte accounting …"],
+      [100, "QUEUE LOADED · GATE STATE RECONSTRUCTED"]
+    ];
+    let i = 0;
+    const tick = () => {
+      const [pct, msg] = stages[i];
+      progressBar.style.width = pct + "%";
+      runMeta.textContent = msg;
+      i++;
+      if (i < stages.length){
+        setTimeout(tick, 240 + Math.random()*220);
+      } else {
+        loadDashboard();
+        setTimeout(()=>{ progressBar.style.width = "0%"; }, 600);
+        runBtn.disabled = false;
+        runBtn.querySelector("span:nth-child(2)").firstChild.nodeValue = "Reload Mission Replay";
+      }
+    };
+    tick();
+  });
+
+  // ---- JSON syntax highlight ----
+  function jsonHighlight(obj){
+    const json = JSON.stringify(obj, null, 2);
+    return json
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/("(\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,
+        (m) => {
+          let cls = "n";
+          if (/^"/.test(m)) cls = /:$/.test(m) ? "k" : "s";
+          else if (/true|false/.test(m)) cls = "b";
+          else if (/null/.test(m)) cls = "nl";
+          return `<span class="${cls}">${m}</span>`;
+        });
+  }
+
+  // ---- Build tile rows ----
+  let selectedIdx = 0;
+  function buildTileTable(){
+    const body = $("tileBody");
+    body.innerHTML = "";
+    D.rows.forEach((r, idx) => {
+      const row = document.createElement("div");
+      row.className = "tile-row fade-in";
+      row.style.animationDelay = (idx * 18) + "ms";
+      const gateClass =
+        r.triage_decision === "IGNORE"          ? "ignore" :
+        r.triage_decision === "JSON_ALERT_ONLY" ? "json"   :
+        r.triage_decision === "FULL_DOWNLINK"   ? "full"   : "crop";
+      const gateShort =
+        r.triage_decision === "IGNORE"          ? "IGNORE" :
+        r.triage_decision === "JSON_ALERT_ONLY" ? "JSON"   :
+        r.triage_decision === "FULL_DOWNLINK"   ? "FULL"   : "CROP";
+      const isAlert = r.triage_decision !== "IGNORE";
+      const confPct = Math.min(100, Math.max(0, r.confidence * 100));
+      row.innerHTML = `
+        <span class="tid">${r.tile_id}</span>
+        <span><span class="gate ${gateClass}">${gateShort}</span></span>
+        <span>
+          <span class="conf ${isAlert?'':'low'}">${r.confidence.toFixed(4)}</span>
+          <span class="conf-bar"><i style="width:${confPct}%"></i></span>
+        </span>
+        <span class="conf ${r.crop_written?'':'low'}">${r.crop_written ? "yes" : "—"}</span>
+        <span class="bytes">${fmtBytes(r.transmitted_bytes)}</span>
+      `;
+      row.addEventListener("click", () => selectRow(idx));
+      body.appendChild(row);
+    });
+    selectRow(firstAlertIdx());
+  }
+
+  function firstAlertIdx(){
+    for (let i=0;i<D.rows.length;i++) if (D.rows[i].triage_decision !== "IGNORE") return i;
+    return 0;
+  }
+
+  function selectRow(idx){
+    selectedIdx = idx;
+    [...document.querySelectorAll(".tile-row")].forEach((el,i)=>{
+      el.classList.toggle("selected", i === idx);
+    });
+    renderDetail(D.rows[idx]);
+  }
+
+  // ---- Crop SVG (placeholder evidence visual based on bbox) ----
+  function renderCropSVG(row){
+    const svg = $("cropSvg");
+    if (!row.bbox){
+      svg.innerHTML = `
+        <defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="8" stroke="#1a1a18" stroke-width="6"/>
+        </pattern></defs>
+        <rect width="400" height="250" fill="#0a0a09"/>
+        <rect width="400" height="250" fill="url(#hatch)" opacity=".5"/>
+        <text x="200" y="130" text-anchor="middle" fill="#7a7164" font-family="JetBrains Mono" font-size="10" letter-spacing="2">NO CROP TRANSMITTED</text>
+        <text x="200" y="148" text-anchor="middle" fill="#4a4238" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5">TILE IGNORED ONBOARD</text>
+      `;
+      return;
+    }
+    // Pseudo terrain + bbox highlight
+    const seed = row.tile_id.split("").reduce((a,c)=>a + c.charCodeAt(0), 0);
+    const rand = (i) => {
+      const x = Math.sin(seed * 9999 + i * 13) * 10000;
+      return x - Math.floor(x);
+    };
+    let blocks = "";
+    for (let i=0;i<60;i++){
+      const x = rand(i)*400, y = rand(i+99)*250;
+      const w = 12 + rand(i+2)*40, h = 8 + rand(i+5)*22;
+      const op = .15 + rand(i+7)*.4;
+      const hue = ["#3a3026","#2c241c","#4a3c2e","#241d18"][Math.floor(rand(i+11)*4)];
+      blocks += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${hue}" opacity="${op}"/>`;
+    }
+    // chimneys + plumes for high-conf alerts
+    let kilns = "";
+    if (row.confidence > 0.5){
+      const cx = 160 + rand(20)*80;
+      const cy = 110 + rand(21)*40;
+      const ovens = row.confidence > 0.85 ? 6 : row.confidence > 0.7 ? 3 : 2;
+      for (let k=0;k<ovens;k++){
+        const ox = cx + (k%3)*22 - 22, oy = cy + Math.floor(k/3)*16;
+        kilns += `<rect x="${ox-9}" y="${oy-6}" width="18" height="12" fill="#5a3a26" stroke="#e47a3c" stroke-width=".5" opacity=".9"/>`;
+      }
+      const stacks = row.confidence > 0.85 ? 3 : row.confidence > 0.7 ? 1 : 1;
+      for (let s=0;s<stacks;s++){
+        const sx = cx + s*14 - 6;
+        kilns += `<rect x="${sx-1.5}" y="${cy-22}" width="3" height="14" fill="#1c1612"/>`;
+        if (row.confidence > 0.7){
+          kilns += `<ellipse cx="${sx+8}" cy="${cy-26}" rx="22" ry="6" fill="#a79b8c" opacity=".22"/>`;
+          kilns += `<ellipse cx="${sx+18}" cy="${cy-30}" rx="30" ry="7" fill="#a79b8c" opacity=".15"/>`;
+        }
+      }
+    }
+    // bbox rect mapped from 800x600 → 400x250
+    const [x1,y1,x2,y2] = row.bbox;
+    const sx = 400/800, sy = 250/600;
+    const bx = x1*sx, by = y1*sy, bw = (x2-x1)*sx, bh = (y2-y1)*sy;
+    const corner = `<g stroke="#e47a3c" stroke-width="1.5" fill="none">
+      <path d="M ${bx} ${by+10} L ${bx} ${by} L ${bx+10} ${by}"/>
+      <path d="M ${bx+bw-10} ${by} L ${bx+bw} ${by} L ${bx+bw} ${by+10}"/>
+      <path d="M ${bx} ${by+bh-10} L ${bx} ${by+bh} L ${bx+10} ${by+bh}"/>
+      <path d="M ${bx+bw-10} ${by+bh} L ${bx+bw} ${by+bh} L ${bx+bw} ${by+bh-10}"/>
+    </g>`;
+    svg.innerHTML = `
+      <rect width="400" height="250" fill="#0a0a09"/>
+      ${blocks}
+      ${kilns}
+      <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="rgba(228,122,60,.06)" stroke="rgba(228,122,60,.45)" stroke-width=".5" stroke-dasharray="3 3"/>
+      ${corner}
+      <text x="${bx}" y="${by-5}" fill="#e47a3c" font-family="JetBrains Mono" font-size="9" letter-spacing="1">YOLO · ${(row.confidence*100).toFixed(1)}%</text>
+    `;
+  }
+
+  // ---- Render alert detail ----
+  function renderDetail(row){
+    $("d-id").textContent = row.tile_id;
+    $("d-gate").textContent = row.triage_decision + " · " + row.transmission_action;
+
+    $("d-crop-label").textContent = row.crop_path ? row.crop_path : "no crop transmitted";
+    $("d-crop-meta").textContent = row.crop_written ? "PNG · 256×256 · queue" : "—";
+    renderCropSVG(row);
+
+    if (row.payload && row.payload.vlm_reasoning){
+      const v = row.payload.vlm_reasoning;
+      $("d-summary").textContent = v.visual_summary || "—";
+      $("d-reasoning").textContent = v.risk_reasoning || "—";
+      $("d-raw").textContent = v.raw_output_excerpt || "—";
+      $("d-verdict").textContent = v.reasoner_output_valid ? "VALID · STRUCTURED" : "PARSE FAILED";
+      $("d-verdict").className = "verdict" + (v.reasoner_output_valid ? "" : " bad");
+    } else {
+      $("d-summary").textContent = "LFM not invoked for this tile (gate did not require evidence review).";
+      $("d-reasoning").textContent = "Liquid only reasons over crops that crossed the boundary. IGNORE tiles never produce a crop.";
+      $("d-raw").textContent = "—";
+      $("d-verdict").textContent = "NOT INVOKED";
+      $("d-verdict").className = "verdict warn";
+    }
+
+    $("d-bbox").textContent = row.bbox ? `[${row.bbox.join(", ")}]` : "—";
+    $("d-conf").textContent = row.confidence.toFixed(4);
+    $("d-risk").textContent = row.compliance_risk;
+    $("d-dmode").textContent = row.detector_mode;
+    $("d-dreal").textContent = row.detector_is_real ? "true" : "false";
+
+    $("d-raw-b").textContent = fmtBytes(row.raw_bytes);
+    $("d-tx-b").textContent = fmtBytes(row.transmitted_bytes);
+    $("d-saved-b").textContent = fmtBytes(Math.max(0, (row.raw_bytes||0) - (row.transmitted_bytes||0)));
+    $("d-crop-w").textContent = row.crop_written ? "true" : "false";
+    $("d-full-w").textContent = row.full_tile_written ? "true" : "false";
+
+    if (row.payload){
+      $("d-json").innerHTML = jsonHighlight(row.payload);
+    } else {
+      $("d-json").textContent = "// IGNORE tile — no payload crossed the boundary.\n// Telemetry-only event recorded in transmission_queue/telemetry.jsonl";
+    }
+  }
+
+  // ---- Tree ----
+  function buildTree(){
+    const a = D.artifacts;
+    const lines = [];
+    lines.push(`<span class="dir">${a.queue_dir}</span>`);
+    a.payload_files.forEach(f => lines.push(`  <span class="file">${f}</span>  <span class="dim"># JSON alert</span>`));
+    lines.push(`  <span class="dir">crops/</span>`);
+    a.crop_files.forEach(f => lines.push(`    <span class="file">${f}</span>  <span class="dim"># bbox crop · evidence</span>`));
+    lines.push(`  <span class="dir">full_tiles/</span>`);
+    if (a.full_tile_files.length){
+      a.full_tile_files.forEach(f => lines.push(`    <span class="new">${f}</span>  <span class="dim"># FULL_DOWNLINK escalation</span>`));
+    } else {
+      lines.push(`    <span class="dim">(empty unless FULL_DOWNLINK)</span>`);
+    }
+    a.telemetry_files.forEach(f => lines.push(`  <span class="file">${f}</span>  <span class="dim"># every tile · including IGNORE</span>`));
+    $("treeView").innerHTML = lines.join("\n");
+  }
+
+  // ---- Top metrics ----
+  function fillMetrics(){
+    const m = D.metrics, c = D.counts, g = D.gates;
+    $("m-saved-pct").textContent = m.bandwidth_saved_percent.toFixed(1) + "%";
+    $("m-saved-bytes").textContent = fmtBytes(m.bytes_saved) + " saved";
+    $("m-ratio").textContent = m.compression_ratio.toFixed(2) + "×";
+    $("m-tiles").textContent = m.tiles_processed;
+    $("m-alerts").textContent = c.detections;
+
+    $("m-ignored").textContent = c.ignored_tiles;
+    $("m-raw").textContent = fmtBytes(m.raw_bytes_processed);
+    $("m-tx").textContent = fmtBytes(m.downlinked_bytes);
+    $("m-crops").textContent = c.crops_generated;
+    $("m-full").textContent = `${c.full_tiles_generated}/${c.full_downlinks}`;
+
+    $("g-ignore").textContent = g.IGNORE;
+    $("g-json").textContent = g.JSON_ALERT_ONLY;
+    $("g-crop").textContent = g.CROP_OR_REVIEW;
+    $("g-full").textContent = g.FULL_DOWNLINK;
+
+    // Proof status
+    const t = D.status.truth_fields, r = t.vlm_reasoning;
+    $("ps-detector_mode").textContent = t.detector_mode;
+    $("ps-detector_is_real").textContent = t.detector_is_real ? "true" : "false";
+    $("ps-simulated").textContent = t.simulated ? "true" : "false";
+    $("ps-fallback_used").textContent = t.fallback_used ? "true" : "false";
+    $("ps-reasoner_mode").textContent = r.reasoner_mode;
+    $("ps-reasoner_is_real").textContent = r.reasoner_is_real ? "true" : "false";
+    $("ps-reasoner_output_valid").textContent = r.reasoner_output_valid ? "true" : "false";
+    $("ps-reasoned_over").textContent = r.reasoned_over;
+    $("ps-model_name").textContent = r.model_name;
+    $("ps-queue_path").textContent = D.artifacts.queue_dir;
+    $("ps-payload_files").textContent = D.artifacts.payload_files.length;
+    const tEl = $("ps-telemetry");
+    if (D.artifacts.telemetry_files.length){
+      tEl.textContent = "present";
+      tEl.classList.add("good");
+    }
+  }
+
+  function loadDashboard(){
+    fillMetrics();
+    buildTileTable();
+    buildTree();
+    document.body.setAttribute("data-loaded","true");
+  }
+
+  // ---- Copy buttons ----
+  document.querySelectorAll(".copy-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-copy");
+      const el = $(id);
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText).then(() => {
+        btn.classList.add("copied");
+        const old = btn.textContent;
+        btn.textContent = "copied";
+        setTimeout(()=>{ btn.classList.remove("copied"); btn.textContent = old; }, 1400);
+      });
+    });
+  });
+})();
+
+</script>
+</body>
+</html>

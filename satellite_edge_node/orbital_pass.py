@@ -72,18 +72,10 @@ def simulate_orbital_pass(
             detection = detector.detect_tile(tile_path)
             latency_ms = (time.perf_counter() - started) * 1000
 
-            # Liquid runs first when enabled, on the cropped region or whole tile —
-            # its compliance_risk feeds the triage decision below.
-            vlm_reasoning = None
-            if reasoner is not None and detection.kiln_detected:
-                vlm_reasoning = reasoner.reason(
-                    image_path=tile_path,
-                    detection=detection,
-                    crop_path=None,  # crop artifact is decided by triage; pass tile here
-                )
-
-            # Compute the four-tier triage decision — this is the actual transmit gate.
-            triage = triage_label(detection, vlm_reasoning, min_confidence=confidence_threshold)
+            # Compute the four-tier triage decision before Liquid. This is the
+            # actual transmit gate; Liquid can annotate crop evidence after the
+            # crop exists, but it must not retroactively change what downlinks.
+            triage = triage_label(detection, None, min_confidence=confidence_threshold)
             decision = triage["decision"]
 
             # Generate crop only for tiers that need one.
@@ -105,6 +97,14 @@ def simulate_orbital_pass(
                 detail = crop_artifact.error or "tier requires a crop but none was produced"
                 raise RequiredCropUnavailable(f"{detection.tile_id}: {detail}")
 
+            vlm_reasoning = None
+            if reasoner is not None and detection.kiln_detected and crop_artifact.path is not None:
+                vlm_reasoning = reasoner.reason(
+                    image_path=tile_path,
+                    detection=detection,
+                    crop_path=crop_artifact.path,
+                )
+
             output_path = None
             json_payload_bytes = 0
             transmitted_bytes = 0
@@ -116,6 +116,7 @@ def simulate_orbital_pass(
                     vlm_reasoning,
                     triage_min_confidence=confidence_threshold,
                     full_tile_artifact=full_tile_artifact,
+                    triage=triage,
                 )
                 output_path = transmission_queue / f"{detection.tile_id}.json"
                 payload_bytes = _finalize_payload_bytes(
@@ -148,6 +149,7 @@ def simulate_orbital_pass(
                 full_tile_payload_bytes=full_tile_artifact.size_bytes,
                 full_tile_path=full_tile_artifact.path,
                 full_tile_error=full_tile_artifact.error,
+                triage=triage,
             )
             record["requested_detector_mode"] = detector_mode
             record["requested_reasoner_mode"] = reasoner_mode

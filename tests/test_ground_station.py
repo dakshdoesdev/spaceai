@@ -6,13 +6,16 @@ from kilnwatch.ground_station import (
     calculate_metrics,
     cumulative_series,
     detector_modes,
+    gate_counts,
     load_ground_station_records,
     mission_proof_counts,
+    queue_artifact_summary,
     proof_status_summary,
     received_alert_rows,
     reasoner_statuses,
     resolve_crop_evidence,
     safe_review_payloads,
+    tile_replay_rows,
 )
 
 
@@ -148,9 +151,31 @@ class GroundStationTests(unittest.TestCase):
 
         real_status = reasoner_statuses(
             [],
-            [{"vlm_reasoning": {"reasoner_mode": "liquid-local", "reasoner_is_real": True}}],
+            [
+                {
+                    "vlm_reasoning": {
+                        "reasoner_mode": "liquid-local",
+                        "reasoner_is_real": True,
+                        "reasoner_output_valid": True,
+                    }
+                }
+            ],
         )
         self.assertEqual(real_status, {"liquid-real"})
+
+        invalid_status = reasoner_statuses(
+            [],
+            [
+                {
+                    "vlm_reasoning": {
+                        "reasoner_mode": "liquid-local",
+                        "reasoner_is_real": True,
+                        "reasoner_output_valid": False,
+                    }
+                }
+            ],
+        )
+        self.assertEqual(invalid_status, {"liquid-real-invalid"})
 
     def test_proof_status_reports_strict_yolo_real(self):
         status = proof_status_summary(
@@ -225,6 +250,7 @@ class GroundStationTests(unittest.TestCase):
                     "vlm_reasoning": {
                         "reasoner_mode": "liquid-local",
                         "reasoner_is_real": True,
+                        "reasoner_output_valid": True,
                         "model_name": "LiquidAI/LFM2.5-VL-450M",
                     }
                 }
@@ -233,9 +259,10 @@ class GroundStationTests(unittest.TestCase):
         )
 
         self.assertEqual(mock.reasoner_label, "LIQUID MOCK")
-        self.assertEqual(real.reasoner_label, "LIQUID LFM REAL")
+        self.assertEqual(real.reasoner_label, "LIQUID LFM STRUCTURED")
         self.assertIs(mock.truth_fields["vlm_reasoning"]["reasoner_is_real"], False)
         self.assertIs(real.truth_fields["vlm_reasoning"]["reasoner_is_real"], True)
+        self.assertIs(real.truth_fields["vlm_reasoning"]["reasoner_output_valid"], True)
 
     def test_mission_proof_counts_detections_and_real_queue_crops(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -265,6 +292,72 @@ class GroundStationTests(unittest.TestCase):
 
         self.assertEqual(counts.detections, 2)
         self.assertEqual(counts.crops_generated, 1)
+        self.assertEqual(counts.json_alerts, 1)
+        self.assertEqual(counts.crop_or_review_alerts, 1)
+
+    def test_mission_proof_counts_do_not_double_count_payload_and_telemetry(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            queue = Path(temp_dir) / "transmission_queue"
+            crops = queue / "crops"
+            crops.mkdir(parents=True)
+            crop_path = crops / "tile-a_crop.png"
+            crop_path.write_bytes(b"real crop bytes")
+
+            payloads = [
+                {
+                    "tile_id": "tile-a",
+                    "triage_decision": "CROP_OR_REVIEW",
+                    "kiln_detected": True,
+                    "crop_ref": str(crop_path),
+                    "byte_accounting": {
+                        "original_payload_bytes": 1000,
+                        "transmitted_payload_bytes": 100,
+                    },
+                }
+            ]
+            telemetry = [
+                {
+                    "tile_id": "tile-a",
+                    "triage_decision": "CROP_OR_REVIEW",
+                    "raw_bytes_processed": 1000,
+                    "downlinked_bytes": 100,
+                },
+                {
+                    "tile_id": "tile-b",
+                    "triage_decision": "IGNORE",
+                    "raw_bytes_processed": 1000,
+                    "downlinked_bytes": 0,
+                },
+            ]
+
+            counts = mission_proof_counts(payloads, telemetry, queue_dir=queue)
+            rows = tile_replay_rows(payloads, telemetry, queue_dir=queue)
+            gates = gate_counts(payloads, telemetry)
+
+        self.assertEqual(counts.detections, 1)
+        self.assertEqual(counts.crops_generated, 1)
+        self.assertEqual(counts.ignored_tiles, 1)
+        self.assertEqual(counts.crop_or_review_alerts, 1)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(gates["CROP_OR_REVIEW"], 1)
+        self.assertEqual(gates["IGNORE"], 1)
+
+    def test_queue_artifact_summary_lists_only_queue_artifacts(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            queue = Path(temp_dir) / "transmission_queue"
+            (queue / "crops").mkdir(parents=True)
+            (queue / "full_tiles").mkdir()
+            (queue / "tile-a.json").write_text("{}", encoding="utf-8")
+            (queue / "telemetry.jsonl").write_text("{}\n", encoding="utf-8")
+            (queue / "crops" / "tile-a_crop.png").write_bytes(b"crop")
+            (queue / "full_tiles" / "tile-a.jpg").write_bytes(b"full")
+
+            summary = queue_artifact_summary(queue)
+
+        self.assertEqual(summary.payload_files, ("tile-a.json",))
+        self.assertEqual(summary.crop_files, ("tile-a_crop.png",))
+        self.assertEqual(summary.full_tile_files, ("tile-a.jpg",))
+        self.assertEqual(summary.telemetry_files, ("telemetry.jsonl",))
 
     def test_crop_evidence_reports_missing_crop_without_inventing_preview(self):
         evidence = resolve_crop_evidence(
