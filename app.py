@@ -22,10 +22,10 @@ _BLANK_LINE_RE = re.compile(r"^\s+$", re.MULTILINE)
 
 def _html(markup: str) -> None:
     """Render raw HTML through Streamlit without tripping CommonMark's
-    indented-code-block / blank-line-terminates-html-block rules."""
-    cleaned = textwrap.dedent(markup)
-    cleaned = _BLANK_LINE_RE.sub("", cleaned)
-    cleaned = cleaned.strip()
+    indented-code-block rules by stripping all leading whitespace per line."""
+    dedented = textwrap.dedent(markup)
+    # Join into a single string with no line-start whitespace
+    cleaned = "".join(line.strip() for line in dedented.splitlines() if line.strip())
     st.markdown(cleaned, unsafe_allow_html=True)
 
 from kilnwatch.ground_station import (
