@@ -1,0 +1,18 @@
+nohup: ignoring input
+127.0.0.1 - - [09/May/2026 05:37:22] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:22] code 404, message File not found
+127.0.0.1 - - [09/May/2026 05:37:22] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [09/May/2026 05:37:37] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /KilnWatch%20v2-print.html HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /app3.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /app1.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /data.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /app2.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /assets/crops/A_103.png HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /assets/crops/UP_744.png HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /assets/crops/A_84.png HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /assets/tiles/T_120.jpg HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /assets/crops/T_120.png HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:40] "GET /assets/crops/T_50.png HTTP/1.1" 200 -
+127.0.0.1 - - [09/May/2026 05:37:46] "GET /KilnWatch%20v2.html HTTP/1.1" 200 -
