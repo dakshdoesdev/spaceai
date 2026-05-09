@@ -55,12 +55,13 @@ def _production_source_for_boundary_scan(path: Path) -> str:
 
 
 _HTML_BLOB_RE = re.compile(
-    r'st\.markdown\s*\(\s*(?:f?"""|f?\'\'\').*?(?:"""|\'\'\')\s*,?',
+    r'(?:st\.markdown|_html)\s*\(\s*(?:f?"""|f?\'\'\').*?(?:"""|\'\'\')\s*,?',
     re.DOTALL,
 )
-# Triple-quoted help/HTML blocks rendered into the dashboard. Strip them so
-# command examples (e.g. `python -m satellite_edge_node...`) don't trip the
-# substring scan; those are documentation, not code paths.
+# Triple-quoted help/HTML blocks rendered into the dashboard via st.markdown
+# or the local _html() helper. Strip them so command examples
+# (e.g. `python -m satellite_edge_node...`) don't trip the substring scan;
+# those are documentation, not code paths.
 
 
 def _strip_help_strings(source: str) -> str:

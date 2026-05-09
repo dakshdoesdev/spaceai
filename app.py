@@ -495,8 +495,14 @@ def _render_topbar() -> None:
             <span>Liquid AI × DPhi · AI in Space</span>
           </div>
           <div class="right">
+            <a href="https://klinwatchbrick.streamlit.app/" target="_blank" style="text-decoration:none;">
+              <span class="kw-chip accent" style="cursor:pointer;">▶ LIVE DEMO</span>
+            </a>
+            <a href="https://github.com/dakshdoesdev/spaceai" target="_blank" style="text-decoration:none;">
+              <span class="kw-chip" style="cursor:pointer;">★ GITHUB</span>
+            </a>
             <a href="https://dakshdoesdev.github.io/spaceai/" target="_blank" style="text-decoration:none;">
-              <span class="kw-chip accent" style="cursor:pointer;">📖 View Project Story</span>
+              <span class="kw-chip accent" style="cursor:pointer;">📖 PROJECT STORY</span>
             </a>
             <span style="color:var(--dim)">|</span>
             <span>Pass <b>{pass_id}</b></span>

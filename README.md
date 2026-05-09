@@ -13,7 +13,15 @@
   <img alt="Streamlit" src="https://img.shields.io/badge/dashboard-Streamlit-FF4B4B">
   <img alt="YOLO" src="https://img.shields.io/badge/detector-Ultralytics%20YOLO-111111">
   <img alt="Liquid" src="https://img.shields.io/badge/reasoner-Liquid%20LFM2.5--VL-6B8CFF">
-  <img alt="Tests" src="https://img.shields.io/badge/tests-74%20passing-2EA44F">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-76%20passing-2EA44F">
+</p>
+
+<p align="center">
+  <a href="https://klinwatchbrick.streamlit.app/"><img alt="Live demo" src="https://img.shields.io/badge/%E2%96%B6%20LIVE%20DEMO-klinwatchbrick.streamlit.app-e47a3c?style=for-the-badge"></a>
+</p>
+
+<p align="center">
+  <strong>🌐 Live demo: <a href="https://klinwatchbrick.streamlit.app/">klinwatchbrick.streamlit.app</a></strong>
 </p>
 
 KilnWatch moves the first compliance decision into the orbital edge slot. A satellite-side node inspects incoming Earth-observation tiles, runs strict YOLO detection, creates crop evidence only for review-worthy detections, optionally asks Liquid LFM2.5-VL to reason over the generated crop, then downlinks compact JSON and crops instead of raw image streams.
@@ -31,7 +39,26 @@ The ground station only reads the downlinked queue. It does not open raw onboard
 - **Crop-first Liquid proof:** Liquid receives the generated `crop_path`, not the full tile, for crop reasoning.
 - **Validity metadata:** every Liquid payload says whether the call was real, whether structured parsing succeeded, and what image was reasoned over.
 - **Queue boundary:** Streamlit reads `transmission_queue/*.json`, `transmission_queue/telemetry.jsonl`, and `transmission_queue/crops/*` only.
-- **Verified locally:** `python -m pytest -q` passes with 74 tests.
+- **Verified locally:** `python -m pytest -q` passes with 76 tests.
+
+## Current Capabilities & Scope
+
+KilnWatch is a local satellite-edge prototype focused on proving the downlink-triage architecture: detect before transmit, reason before review, and send evidence instead of empty fields.
+
+### What the current demo supports
+
+- Local satellite-edge triage flow.
+- Strict YOLO detector path when `scripts/check_model_ready.py --json` passes.
+- Real crop artifacts for review-tier detections.
+- Liquid LFM2.5-VL local inference when `--reasoner liquid-local` succeeds.
+- Structured crop reasoning when `reasoner_output_valid=true`.
+- Four-tier transmission policy: `IGNORE`, `JSON_ALERT_ONLY`, `CROP_OR_REVIEW`, `FULL_DOWNLINK`.
+- Queue-only ground station boundary.
+- Byte accounting from actual generated files.
+
+### Scope of this submission
+
+This submission focuses on the architecture and local proof-of-concept run. It does not present KilnWatch as deployed satellite hardware, a production regulatory tool, or a Sentinel-validated accuracy benchmark. The current demo imagery is used to validate the pipeline mechanics; Sentinel/DPhi SimSat integration and Liquid fine-tuning are the next production steps.
 
 ## Why This Matters
 
@@ -256,6 +283,8 @@ streamlit run app.py
 ```
 
 ## Web Interface
+
+> 🌐 **Hosted demo:** [klinwatchbrick.streamlit.app](https://klinwatchbrick.streamlit.app/) — live Streamlit Cloud deployment, same dashboard, same real Liquid LFM2.5-VL output that you can run locally.
 
 The Streamlit dashboard is the judge-facing ground station.
 
