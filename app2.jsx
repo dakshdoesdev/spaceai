@@ -49,6 +49,24 @@ function Built() {
             <p>14 raw tiles in. 5 real alerts out. {Math.round(TOTALS.ratio)}× compression. Liquid runs over crop evidence when enabled, and every payload carries validity metadata instead of pretending parse failures are structured reasoning.</p>
           </div>
         </div>
+
+        <div className="built-cta">
+          <a className="btn-demo" href="https://klinwatchbrick.streamlit.app/" target="_blank" rel="noopener">
+            <span className="btn-demo-tri" aria-hidden="true"></span>
+            <span className="btn-demo-label">
+              Open the Live Mission Replay
+              <span className="btn-demo-sub">klinwatchbrick.streamlit.app · real Liquid LFM2.5-VL output</span>
+            </span>
+            <span className="btn-demo-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a className="btn-demo btn-demo-ghost" href="https://github.com/dakshdoesdev/spaceai" target="_blank" rel="noopener">
+            <span className="btn-demo-label">
+              Browse the source on GitHub
+              <span className="btn-demo-sub">github.com/dakshdoesdev/spaceai · 76 tests, queue-only boundary</span>
+            </span>
+            <span className="btn-demo-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
       </div>
     </section>
   );
