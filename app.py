@@ -495,6 +495,10 @@ def _render_topbar() -> None:
             <span>Liquid AI × DPhi · AI in Space</span>
           </div>
           <div class="right">
+            <a href="https://dakshdoesdev.github.io/spaceai/" target="_blank" style="text-decoration:none;">
+              <span class="kw-chip accent" style="cursor:pointer;">📖 View Project Story</span>
+            </a>
+            <span style="color:var(--dim)">|</span>
             <span>Pass <b>{pass_id}</b></span>
             <span>UTC <b id="kw-clock">--:--:--</b></span>
             <span>Build <b>v1.0.0</b></span>
