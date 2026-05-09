@@ -5,9 +5,70 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kilnwatch"
 version = "0.1.0"
-description = "Local SimSat/Sentinel-style ingestion for brick kiln compliance triage."
+description = "Satellite-edge brick-kiln triage. Strict YOLO + Liquid LFM2.5-VL-450M reason over crops onboard, four-tier transmission gate downlinks evidence instead of empty fields."
+readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+authors = [
+    { name = "Daksh", email = "hackathon@newtonschool.tech" },
+]
+keywords = [
+    "satellite-edge",
+    "brick-kiln-detection",
+    "yolo",
+    "liquid-ai",
+    "lfm2-vl",
+    "vision-language-model",
+    "edge-ai",
+    "computer-vision",
+    "geospatial",
+    "remote-sensing",
+    "compliance-monitoring",
+    "streamlit",
+    "hackathon",
+    "ai-in-space",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "streamlit>=1.35",
+    "pandas>=2.2",
+    "Pillow>=10",
+]
+
+[project.optional-dependencies]
+detector = [
+    "ultralytics>=8.3",
+    "torch>=2.0",
+]
+reasoner = [
+    "transformers>=4.46",
+    "accelerate>=0.34",
+]
+all = [
+    "ultralytics>=8.3",
+    "torch>=2.0",
+    "transformers>=4.46",
+    "accelerate>=0.34",
+]
+dev = [
+    "pytest>=8",
+]
+
+[project.urls]
+Homepage      = "https://klinwatchbrick.streamlit.app/"
+"Live Demo"   = "https://klinwatchbrick.streamlit.app/"
+"Project Story" = "https://dakshdoesdev.github.io/spaceai/"
+Repository    = "https://github.com/dakshdoesdev/spaceai"
+Issues        = "https://github.com/dakshdoesdev/spaceai/issues"
 
 [project.scripts]
 kilnwatch-fetch-haryana = "kilnwatch.ingestion.cli:main"
