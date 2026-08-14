@@ -41,3 +41,5 @@ transmission_queue.backup_*/
 Thumbs.db
 .vscode/
 .idea/
+*.log
+.~lock.*#
